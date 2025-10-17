@@ -1,11 +1,15 @@
-import { useState } from 'react'
-import './App.css'
+import { Button, Stack } from '@mui/material'
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <></>
+    <>
+      <Stack spacing={2} direction="row">
+        <Button variant="text">Text</Button>
+        <Button variant="contained">Contained</Button>
+        <Button variant="outlined">Outlined</Button>
+      </Stack>
+    </>
   )
 }
 
