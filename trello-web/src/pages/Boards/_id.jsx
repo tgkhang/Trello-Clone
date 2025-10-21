@@ -9,7 +9,6 @@ function Board() {
       <AppBar />
       <BoardBar />
       <BoardContent />
-
     </Container >
   )
 }
