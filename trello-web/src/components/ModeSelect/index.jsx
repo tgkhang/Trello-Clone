@@ -27,9 +27,9 @@ export default function ModeSelect() {
       >
 
         <MenuItem value="light">
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <LightModeIcon fontSize='small' /> Light
-          </div>
+          </Box>
         </MenuItem>
         <MenuItem value="dark">
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
