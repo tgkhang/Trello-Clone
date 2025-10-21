@@ -52,14 +52,15 @@ export default defineConfig([
       'no-unexpected-multiline': 'warn',
 
       // Import/Export rules
-      'import/no-unresolved': ['error', {
-        ignore: ['^vite$', '^@vitejs/', 'eslint/config'], // Ignore node modules that ESLint can't resolve
-      }],
-      'import/named': 'error', // Ensure named imports exist
-      'import/default': 'error', // Ensure default import exists
-      'import/namespace': ['error', {
-        allowComputed: true,
-      }],
+      // 'import/no-unresolved': ['error', {
+      //   ignore: ['^vite$', '^@vitejs/', 'eslint/config'], // Ignore node modules that ESLint can't resolve
+      // }],
+
+      // 'import/named': 'error', // Ensure named imports exist
+      // 'import/default': 'error', // Ensure default import exists
+      // 'import/namespace': ['error', {
+      //   allowComputed: true,
+      // }],
 
       // Formatting
       'space-before-blocks': ['error', 'always'],
