@@ -21,7 +21,53 @@ const theme = extendTheme({
     },
   },
   cssVariables: true,
-  colorSchemeSelector: 'class'
+  colorSchemeSelector: 'class',
+  components: {
+    // Customize MUI Button component
+    MuiButton: {
+      styleOverrides: {
+        // Name of the slot
+        root: {
+          // Some CSS
+          //fontSize: '1rem',
+          textTransform: 'none',
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.primary.main,
+          fontsize: '0.875rem',
+        }),
+      },
+    },
+    // customize MUI TextField component
+    MuiOutlinedInput: {
+      styleOverrides: {
+        // override the styles of the root element
+        root: ({ theme }) => {
+          //console.log(theme)
+          return {
+            color: theme.palette.primary.main,
+            fontsize: '0.875rem',
+            '.MuiOutlinedInput-notchedOutline': {
+              borderColor: theme.palette.primary.light,
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              '.MuiOutlinedInput-notchedOutline': {
+                borderColor: theme.palette.primary.light,
+              },
+            },
+            '& fieldset': {
+              borderWidth: '1px !important',
+            },
+          }
+        }
+      },
+    },
+  },
+  // Other theme properties...
 })
 
 
