@@ -9,6 +9,9 @@ function ModeToggle() {
   // const prefersLightMode = useMediaQuery('(prefers-color-scheme: light)')
   // console.log({ prefersLightMode })
 
+  if (!mode) {
+    return null
+  }
 
   return (
     <Button onClick={() => {

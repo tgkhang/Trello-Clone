@@ -2,6 +2,8 @@
 import { extendTheme } from '@mui/material/styles'
 
 const theme = extendTheme({
+  colorSchemeSelector: 'class',
+  defaultColorScheme: 'light',
   trello: {
     appBarHeight: '58px',
     boardBarHeight: '60px'
@@ -20,8 +22,6 @@ const theme = extendTheme({
       // },
     },
   },
-  cssVariables: true,
-  colorSchemeSelector: 'class',
   components: {
     MuiCssBaseline: {
       styleOverrides: {

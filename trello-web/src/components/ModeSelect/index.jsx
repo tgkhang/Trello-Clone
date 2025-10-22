@@ -15,6 +15,10 @@ export default function ModeSelect() {
     setMode(newMode)
   }
 
+  if (!mode) {
+    return null
+  }
+
   return (
     <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
       <InputLabel
