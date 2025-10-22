@@ -37,6 +37,7 @@ function BoardBar() {
       ...theme.applyStyles('dark', {
         bgcolor: '#30495e'
       }),
+      '&::-webkit-scrollbar-track': { m: 2 },
     })}>
 
       {/* Left side content */}

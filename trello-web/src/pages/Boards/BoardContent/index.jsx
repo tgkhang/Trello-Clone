@@ -38,14 +38,15 @@ function BoardContent() {
     setAnchorEl(null)
   }
   return (
-    <Box sx={{
+    <Box sx={(theme) => ({
       width: '100%',
-      height: (theme) => theme.trello.boardContentHeight,
-      bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#34495e' : '#1976d2'),
+      height: theme.trello.boardContentHeight,
+      bgcolor: '#1976d2',
+      ...theme.applyStyles('dark', {
+        bgcolor: '#34495e'
+      }),
       p: '10px 0',
-      '&::-webkit-scrollbar-track': { m: 2 }, //padding for scrollbar track
-    }}>
-
+    })}>
       <Box sx={{
         bgcolor: 'inherit',
         width: '100%',
@@ -53,6 +54,7 @@ function BoardContent() {
         overflowX: 'auto',
         overflowY: 'hidden',
         display: 'flex',
+        '&::-webkit-scrollbar-track': { m: 2 },
       }}>
         {/* Column 1*/}
         <Box sx={{
