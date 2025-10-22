@@ -23,9 +23,9 @@ const MENU_STYLE = {
 
 function BoardBar() {
   return (
-    <Box sx={{
+    <Box sx={(theme) => ({
       width: '100%',
-      height: (theme) => theme.trello.boardBarHeight,
+      height: theme.trello.boardBarHeight,
       display: 'flex',
       px: 2,
       alignItems: 'center',
@@ -33,8 +33,11 @@ function BoardBar() {
       gap: 2,
       overflowX: 'auto',
       borderBottom: '1px solid white',
-      bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#30495e' : '#1976d2'),
-    }}>
+      bgcolor: '#1976d2',
+      ...theme.applyStyles('dark', {
+        bgcolor: '#30495e'
+      }),
+    })}>
 
       {/* Left side content */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
