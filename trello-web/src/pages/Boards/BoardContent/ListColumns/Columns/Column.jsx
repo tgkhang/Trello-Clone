@@ -33,6 +33,7 @@ function Column({ column }) {
     // transform: CSS.Transform.toString(transform),
     transform: CSS.Translate.toString(transform),
     transition,
+    // touchAction: 'none',
   }
 
   // Dropdown menu state
