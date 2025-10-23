@@ -41,6 +41,7 @@ export default defineConfig([
     rules: {
       // React specific rules
       'react/react-in-jsx-scope': 'off', // Not needed in React 17+
+      'react/prop-types': 'off', // Disable prop-types validation
       'react/jsx-no-undef': 'error', // Error on undefined components
       // Code quality
       'no-console': 'warn',

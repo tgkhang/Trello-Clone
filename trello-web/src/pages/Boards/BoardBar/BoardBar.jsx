@@ -10,6 +10,7 @@ import AvatarGroup from '@mui/material/AvatarGroup'
 import Tooltip from '@mui/material/Tooltip'
 import Button from '@mui/material/Button'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
+import { captializeFirstLetter } from '~/utils/formatter'
 
 const MENU_STYLE = {
   color: 'white',
@@ -21,7 +22,7 @@ const MENU_STYLE = {
   '&:hover': { bgcolor: 'primary.50' },
 }
 
-function BoardBar() {
+function BoardBar({ board }) {
   return (
     <Box sx={(theme) => ({
       width: '100%',
@@ -37,6 +38,7 @@ function BoardBar() {
       ...theme.applyStyles('dark', {
         bgcolor: '#30495e'
       }),
+      '&::-webkit-scrollbar-track': { m: 2 },
     })}>
 
       {/* Left side content */}
@@ -44,7 +46,7 @@ function BoardBar() {
         <Chip
           sx={MENU_STYLE}
           icon={<DashboardIcon />}
-          label="Dashboard"
+          label={board?.title}
           // clickable
           onClick={() => { }}
 
@@ -52,7 +54,7 @@ function BoardBar() {
         <Chip
           sx={MENU_STYLE}
           icon={<VpnLockIcon />}
-          label="Public/Private Workspace"
+          label={captializeFirstLetter(board?.type)}
           // clickable
           onClick={() => { }}
 
@@ -104,6 +106,9 @@ function BoardBar() {
               height: 32,
               fontSize: 15,
               // border: 'none'
+              color: 'white',
+              cursor: 'pointer',
+              '&:first-of-type': { bgcolor: ' #a4b0be' }
             }
           }}
         >

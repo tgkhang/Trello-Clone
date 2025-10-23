@@ -1,4 +1,4 @@
-import ModeSelect from '../ModeSelect'
+
 import Box from '@mui/material/Box'
 import AppsIcon from '@mui/icons-material/Apps'
 import TrelloIcon from '~/assets/trello.svg?react'
@@ -20,6 +20,7 @@ import InputAdornment from '@mui/material/InputAdornment'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
 import { useState } from 'react'
+import ModeSelect from '../ModeSelect/ModeSelect'
 
 function AppBar() {
   const [searchText, setSearchText] = useState('')
@@ -38,6 +39,7 @@ function AppBar() {
       ...theme.applyStyles('dark', {
         bgcolor: '#2c3e50'
       }),
+      '&::-webkit-scrollbar-track': { m: 2 },
     })}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <AppsIcon sx={{ color: 'white' }} />

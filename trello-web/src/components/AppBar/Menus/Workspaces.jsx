@@ -14,8 +14,6 @@ import ContentPaste from '@mui/icons-material/ContentPaste'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 function Workspaces() {
-
-
   const [anchorEl, setAnchorEl] = useState(null)
   const open = Boolean(anchorEl)
   const handleClick = (event) => {
