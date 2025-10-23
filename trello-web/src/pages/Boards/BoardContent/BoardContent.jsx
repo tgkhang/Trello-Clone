@@ -1,11 +1,20 @@
 import Box from '@mui/material/Box'
 import ListColumns from './ListColumns/ListColumns'
 import { mapOrder } from '~/utils/sort'
-import { DndContext } from '@dnd-kit/core'
+import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
 import { useEffect, useState } from 'react'
 
 function BoardContent({ board }) {
+  const pointerSensor = useSensor(PointerSensor,
+    {
+      // require user to move 10 pixels before activating drag
+      activationConstraint: {
+        distance: 10,
+      }
+    }
+  )
+  const sensors= useSensors(pointerSensor)
 
   const [orderedColumns, setOrderedColumns] = useState([])
 
@@ -37,7 +46,7 @@ function BoardContent({ board }) {
   }
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
+    <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
       <Box sx={(theme) => ({
         width: '100%',
         height: theme.trello.boardContentHeight,
