@@ -54,15 +54,18 @@ function Column({ column }) {
       style={dndKitColumnStyle}
       {...attributes}
       {...listeners}
-      sx={{
+      sx={(theme) => ({
         minWidth: '300px',
         maxWidth: '300px',
-        bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#333643' : '#ebecf0'),
+        bgcolor: '#ebecf0',
         ml: 2,
         borderRadius: '6px',
         height: 'fit-content',
-        maxHeight: (theme) => `calc(${theme.trello.boardContentHeight} - ${theme.spacing(5)})`,
-      }}>
+        maxHeight: `calc(${theme.trello.boardContentHeight} - ${theme.spacing(5)})`,
+        ...theme.applyStyles('dark', {
+          bgcolor: '#333643'
+        }),
+      })}>
       {/* Header */}
       <Box
         sx={{
