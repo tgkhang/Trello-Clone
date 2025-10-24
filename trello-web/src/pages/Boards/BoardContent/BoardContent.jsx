@@ -6,7 +6,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { useEffect, useState } from 'react'
 import Column from './ListColumns/Columns/Column'
 import Card from './ListColumns/Columns/ListCards/Card/Card'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, set } from 'lodash'
 
 //
 const ACTIVE_DRAG_ITEM_STYLE = {
@@ -36,6 +36,8 @@ function BoardContent({ board }) {
   const [activeDragItemId, setActiveDragItemId] = useState(null)
   const [activeDragItemType, setActiveDragItemType] = useState(null)
   const [activeDragItemData, setActiveDragItemData] = useState(null)
+  // store old column when dragging card
+  const [oldColumnWhenDraggingCard, setOldColumnWhenDraggingCard] = useState(null)
 
   useEffect(() => {
     const tmp = mapOrder(board?.columns, board?.columnOrderIds, '_id')
@@ -53,6 +55,10 @@ function BoardContent({ board }) {
     setActiveDragItemId(event?.active?.id)
     setActiveDragItemType(event?.active?.data?.current?.columnId ? ACTIVE_DRAG_ITEM_STYLE.CARD : ACTIVE_DRAG_ITEM_STYLE.COLUMN)
     setActiveDragItemData(event?.active?.data?.current)
+
+    if (event?.active?.data?.current?.columnId) {
+      setOldColumnWhenDraggingCard(findColumnByCardId(event?.active?.id))
+    }
   }
 
   // Handle drag over event, trigger when dragging item over another droppable area
@@ -125,7 +131,10 @@ function BoardContent({ board }) {
 
     // Handle card drag end
     if (activeDragItemType === ACTIVE_DRAG_ITEM_STYLE.CARD) {
+
+      // activeDraggingCardId: id of the card being dragged
       const { id: activeDraggingCardId, data: { current: activeDraggingCardData } } = active
+      // overCardId: id of the card being hovered over
       const { id: overCardId } = over
 
       const activeColumn = findColumnByCardId(activeDraggingCardId)
@@ -133,48 +142,54 @@ function BoardContent({ board }) {
 
       if (!activeColumn || !overColumn) return
 
-      // Dragging card in the same column
-      if (activeColumn._id === overColumn._id) {
-        const oldCardIndex = activeColumn?.cards?.findIndex(card => card._id === activeDraggingCardId)
-        const newCardIndex = activeColumn?.cards?.findIndex(card => card._id === overCardId)
+      if (oldColumnWhenDraggingCard._id !== overColumn._id) {
+        // Card was moved to a different column
+        // console.log('Card moved to different column')
+      } else {
+        // Card was moved within the same column
+        // logic same as drag colums in board
+        // console.log('Card moved within the same column')
+        const oldCardIndex = oldColumnWhenDraggingCard?.cards?.findIndex(col => col._id === activeDragItemId)
+        const newCardIndex = overColumn?.cards?.findIndex(col => col._id === overCardId)
 
-        const dndOrderedCards = arrayMove(activeColumn?.cards, oldCardIndex, newCardIndex)
+        const dndOrderedCards = arrayMove(oldColumnWhenDraggingCard?.cards, oldCardIndex, newCardIndex)
+        //console.log(dndOrderedCards)
 
         setOrderedColumns((prev) => {
           const nextColumns = cloneDeep(prev)
-          const targetColumn = nextColumns.find(col => col._id === activeColumn._id)
+          //find the target column
+          const targetColumn = nextColumns.find(col => col._id === overColumn._id)
+          // update cards and card order ids
           targetColumn.cards = dndOrderedCards
           targetColumn.cardOrderIds = dndOrderedCards.map(card => card._id)
           return nextColumns
         })
       }
 
-      // Reset active drag item state
-      setActiveDragItemId(null)
-      setActiveDragItemType(null)
-      setActiveDragItemData(null)
-      return
     }
 
-    // Handle column drag end
-    // Check if the item was moved to a different position
-    if (active.id !== over.id) {
-      const oldIndex = orderedColumns.findIndex(col => col._id === active.id)
-      const newIndex = orderedColumns.findIndex(col => col._id === over.id)
+    if (activeDragItemType === ACTIVE_DRAG_ITEM_STYLE.COLUMN) {
+      // Handle column drag end
+      // Check if the item was moved to a different position
+      if (active.id !== over.id) {
+        const oldColumnIndex = orderedColumns.findIndex(col => col._id === active.id)
+        const newColumnIndex = orderedColumns.findIndex(col => col._id === over.id)
 
-      const dndOrderedColumns = arrayMove(orderedColumns, oldIndex, newIndex)
-      //const dndOrderedColumnsIds = dndOrderedColumns.map(col => col._id)
+        const dndOrderedColumns = arrayMove(orderedColumns, oldColumnIndex, newColumnIndex)
+        //const dndOrderedColumnsIds = dndOrderedColumns.map(col => col._id)
 
-      // console.log(dndOrderedColumns)
-      // console.log({ dndOrderedColumnsIds })
+        // console.log(dndOrderedColumns)
+        // console.log({ dndOrderedColumnsIds })
 
-      setOrderedColumns(dndOrderedColumns)
+        setOrderedColumns(dndOrderedColumns)
+      }
     }
 
     // Reset active drag item state
     setActiveDragItemId(null)
     setActiveDragItemType(null)
     setActiveDragItemData(null)
+    setOldColumnWhenDraggingCard(null)
   }
 
   const customDropAnimation = {
