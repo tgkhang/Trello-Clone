@@ -7,6 +7,8 @@ import CardMedia from '@mui/material/CardMedia'
 import GroupIcon from '@mui/icons-material/Group'
 import CommentIcon from '@mui/icons-material/Comment'
 import AttachmentIcon from '@mui/icons-material/Attachment'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 // import PropTypes from 'prop-types'
 
 // Card.propTypes = {
@@ -18,8 +20,25 @@ function Card({ card }) {
     return !!(card?.memberIds?.length || card?.comments?.length || card?.attachments?.length)
   }
 
+  // DnD Kit sortable hook
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: card._id,
+    data: { ...card }
+  })
+
+  const dndKitCardStyle = {
+    // dnd kit issues 117
+    // transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity : isDragging ? 0.5 : undefined,
+    // touchAction: 'none',
+  }
+
+
   return (
     <MuiCard
+      ref={setNodeRef} style={dndKitCardStyle} {...attributes} {...listeners}
       sx={{
         cursor: 'pointer',
         boxShadow: '0 1px 1px rgba(0,0,0,0.2)',
