@@ -6,6 +6,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { useEffect, useState } from 'react'
 import Column from './ListColumns/Columns/Column'
 import Card from './ListColumns/Columns/ListCards/Card/Card'
+import { cloneDeep } from 'lodash'
 
 //
 const ACTIVE_DRAG_ITEM_STYLE = {
@@ -41,13 +42,121 @@ function BoardContent({ board }) {
     setOrderedColumns(tmp)
   }, [board])
 
+
+  const findColumnByCardId = (cardId) => {
+    return orderedColumns.find(column => column?.cards?.map(card => card._id)?.includes(cardId))
+  }
+
+  // Handle drag start event
+  const handleDragStart = (event) => {
+    //console.log('Drag Started', event)
+    setActiveDragItemId(event?.active?.id)
+    setActiveDragItemType(event?.active?.data?.current?.columnId ? ACTIVE_DRAG_ITEM_STYLE.CARD : ACTIVE_DRAG_ITEM_STYLE.COLUMN)
+    setActiveDragItemData(event?.active?.data?.current)
+  }
+
+  // Handle drag over event, trigger when dragging item over another droppable area
+  const handleDragOver = (event) => {
+
+    // Do nothing with drag column
+    if (activeDragItemType === ACTIVE_DRAG_ITEM_STYLE.COLUMN) return
+
+    //console.log('Drag Over', event)
+    // Card
+    const { active, over } = event
+    // prevent drag to some idiot place
+    if (!active && !over) return
+
+    // activeDraggingCardId: id of the card being dragged
+    const { id: activeDraggingCardId, data: { current: activeDraggingCardData } } = active
+    // overCardId: id of the card being hovered over
+    const { id: overCardId } = over
+
+    const activeColumn = findColumnByCardId(activeDraggingCardId)
+    const overColumn = findColumnByCardId(overCardId)
+
+    if (!activeColumn || !overColumn) return
+
+    // If the card is being dragged to a different column with the current collums of the car
+    if (activeColumn._id !== overColumn._id) {
+      setOrderedColumns((prev) => {
+        const overCardIndex = overColumn?.cards?.findIndex(card => card._id === overCardId)
+
+        let newCardIndex
+        const isBellowOverItem = active.rect?.current?.translated &&
+          active.rect.current.translated.top > (over.rect?.current?.top ?? 0) + (over.rect?.current?.height ?? 0)
+
+        const modifier = isBellowOverItem ? 1 : 0
+        newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards?.length + 1
+
+        // deep clone by lodash
+        const nextColumns = cloneDeep(prev)
+
+        const nextActiveColumn = nextColumns.find(col => col._id === activeColumn._id)
+        const nextOverColumn = nextColumns.find(col => col._id === overColumn._id)
+
+        if (nextActiveColumn) {
+          // delete card from previous column
+          nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
+          // update card order ids
+          nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
+        }
+        if (nextOverColumn) {
+          // delete card from previous column just in case
+          nextOverColumn.cards = nextOverColumn.cards.filter(card => card._id !== activeDraggingCardId)
+          // insert card into new column index new
+          nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, activeDraggingCardData)
+          // update card order ids
+          nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
+        }
+        return nextColumns
+      })
+    }
+  }
+
+  // Handle drag end event
   const handleDragEnd = (event) => {
     //console.log('Drag Ended', event)
+
     const { active, over } = event
 
     // prevent drag to some idiot place
-    if (!over) return
+    if (!active && !over) return
 
+    // Handle card drag end
+    if (activeDragItemType === ACTIVE_DRAG_ITEM_STYLE.CARD) {
+      const { id: activeDraggingCardId, data: { current: activeDraggingCardData } } = active
+      const { id: overCardId } = over
+
+      const activeColumn = findColumnByCardId(activeDraggingCardId)
+      const overColumn = findColumnByCardId(overCardId)
+
+      if (!activeColumn || !overColumn) return
+
+      // Dragging card in the same column
+      if (activeColumn._id === overColumn._id) {
+        const oldCardIndex = activeColumn?.cards?.findIndex(card => card._id === activeDraggingCardId)
+        const newCardIndex = activeColumn?.cards?.findIndex(card => card._id === overCardId)
+
+        const dndOrderedCards = arrayMove(activeColumn?.cards, oldCardIndex, newCardIndex)
+
+        setOrderedColumns((prev) => {
+          const nextColumns = cloneDeep(prev)
+          const targetColumn = nextColumns.find(col => col._id === activeColumn._id)
+          targetColumn.cards = dndOrderedCards
+          targetColumn.cardOrderIds = dndOrderedCards.map(card => card._id)
+          return nextColumns
+        })
+      }
+
+      // Reset active drag item state
+      setActiveDragItemId(null)
+      setActiveDragItemType(null)
+      setActiveDragItemData(null)
+      return
+    }
+
+    // Handle column drag end
     // Check if the item was moved to a different position
     if (active.id !== over.id) {
       const oldIndex = orderedColumns.findIndex(col => col._id === active.id)
@@ -68,13 +177,6 @@ function BoardContent({ board }) {
     setActiveDragItemData(null)
   }
 
-  const handleDragStart = (event) => {
-    //console.log('Drag Started', event)
-    setActiveDragItemId(event?.active?.id)
-    setActiveDragItemType(event?.active?.data?.current?.columnId ? ACTIVE_DRAG_ITEM_STYLE.CARD : ACTIVE_DRAG_ITEM_STYLE.COLUMN)
-    setActiveDragItemData(event?.active?.data?.current)
-  }
-
   const customDropAnimation = {
     sideEffects: defaultDropAnimationSideEffects({
       styles: {
@@ -87,8 +189,9 @@ function BoardContent({ board }) {
 
   return (
     <DndContext
-      onDragStart={handleDragStart}
       sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <Box sx={(theme) => ({
