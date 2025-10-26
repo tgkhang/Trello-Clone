@@ -1,9 +1,9 @@
 import Box from '@mui/material/Box'
 import ListColumns from './ListColumns/ListColumns'
 import { mapOrder } from '~/utils/sort'
-import { DndContext, useSensor, MouseSensor, TouchSensor, useSensors, DragOverlay, defaultDropAnimationSideEffects, closestCorners } from '@dnd-kit/core'
+import { DndContext, useSensor, MouseSensor, TouchSensor, useSensors, DragOverlay, defaultDropAnimationSideEffects, closestCorners, pointerWithin, rectIntersection, getFirstCollision, closestCenter } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Column from './ListColumns/Columns/Column'
 import Card from './ListColumns/Columns/ListCards/Card/Card'
 import { cloneDeep } from 'lodash'
@@ -40,6 +40,8 @@ function BoardContent({ board }) {
   const [activeDragItemData, setActiveDragItemData] = useState(null)
   // store old column when dragging card
   const [oldColumnWhenDraggingCard, setOldColumnWhenDraggingCard] = useState(null)
+  // last collision id
+  const lastOverId = useRef(null)
 
   // Update ordered columns when board data changes
   useEffect(() => {
@@ -51,7 +53,6 @@ function BoardContent({ board }) {
     // map to take out id in full objects
     return orderedColumns.find(column => column?.cards?.map(card => card._id)?.includes(cardId))
   }
-
 
   // Common function : update state when moving card between different columns
   const moveCardBetweenDifferentColumns = (
@@ -67,11 +68,12 @@ function BoardContent({ board }) {
       const overCardIndex = overColumn?.cards?.findIndex(card => card._id === overCardId)
 
       let newCardIndex
-      const isBellowOverItem = active.rect?.current?.translated &&
-        active.rect.current.translated.top > (over.rect?.current?.top ?? 0) + (over.rect?.current?.height ?? 0)
+      // const isBellowOverItem = active.rect?.current?.translated &&
+      //   active.rect.current.translated.top > (over.rect?.current?.top ?? 0) + (over.rect?.current?.height ?? 0)
 
-      const modifier = isBellowOverItem ? 1 : 0
-      newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards?.length + 1
+      // const modifier = isBellowOverItem ? 1 : 0
+      // newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards?.length + 1
+      newCardIndex = overCardIndex >= 0 ? overCardIndex : overColumn?.cards?.length
 
       // deep clone by lodash
       const nextColumns = cloneDeep(prev)
@@ -125,7 +127,7 @@ function BoardContent({ board }) {
     // Card
     const { active, over } = event
     // prevent drag to some idiot place
-    if (!active && !over) return
+    if (!active || !over) return
 
     // activeDraggingCardId: id of the card being dragged
     const { id: activeDraggingCardId, data: { current: activeDraggingCardData } } = active
@@ -137,7 +139,7 @@ function BoardContent({ board }) {
 
     if (!activeColumn || !overColumn) return
 
-    // If the card is being dragged to a different column with the current collums of the car
+    // If the card is being dragged to a different column
     if (activeColumn._id !== overColumn._id) {
       moveCardBetweenDifferentColumns(
         overColumn,
@@ -242,11 +244,43 @@ function BoardContent({ board }) {
     })
   }
 
+  const collisionDetectionStrategy = useCallback((args) => {
+    // for column drag use default closestCorners algorithm
+    if (activeDragItemType === ACTIVE_DRAG_ITEM_STYLE.COLUMN) {
+      return closestCorners({ ...args })
+    }
+
+    const pointerIntersections = pointerWithin(args)
+    //
+    const intersections = !!pointerIntersections?.length ? pointerIntersections : rectIntersection(args)
+    // const intersections= pointerIntersections?.length >0 pointerIntersections : rectIntersection(args)
+
+    let overId = getFirstCollision(intersections, 'id')
+    if (overId) {
+      const checkColumn = orderedColumns.find(col => col._id === overId)
+      if (checkColumn) {
+        overId = closestCenter({
+          ...args,
+          droppableContainers: args.droppableContainers.filter(container => {
+            return container.id !== overId && checkColumn?.cardOrderIds?.includes(container.id)
+          })
+
+        })[0]?.id
+      }
+      lastOverId.current = overId
+      return [{ id: overId }]
+    }
+
+    return lastOverId.current ? [{ id: lastOverId.current }] : []
+  }, [activeDragItemType, orderedColumns])
+
   return (
     <DndContext
       sensors={sensors}
       // algorithm fix big cards dnd issues by algorithm closestCorners
-      collisionDetection={closestCorners}
+      //collisionDetection={closestCorners}
+      // custom collision detection strategy if needed
+      collisionDetection={collisionDetectionStrategy}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
