@@ -52,6 +52,57 @@ function BoardContent({ board }) {
     return orderedColumns.find(column => column?.cards?.map(card => card._id)?.includes(cardId))
   }
 
+
+  // Common function : update state when moving card between different columns
+  const moveCardBetweenDifferentColumns = (
+    overColumn,
+    overCardId,
+    active,
+    over,
+    activeColumn,
+    activeDraggingCardId,
+    activeDraggingCardData
+  ) => {
+    setOrderedColumns((prev) => {
+      const overCardIndex = overColumn?.cards?.findIndex(card => card._id === overCardId)
+
+      let newCardIndex
+      const isBellowOverItem = active.rect?.current?.translated &&
+        active.rect.current.translated.top > (over.rect?.current?.top ?? 0) + (over.rect?.current?.height ?? 0)
+
+      const modifier = isBellowOverItem ? 1 : 0
+      newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards?.length + 1
+
+      // deep clone by lodash
+      const nextColumns = cloneDeep(prev)
+
+      const nextActiveColumn = nextColumns.find(col => col._id === activeColumn._id)
+      const nextOverColumn = nextColumns.find(col => col._id === overColumn._id)
+
+      if (nextActiveColumn) {
+        // delete card from previous column
+        nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
+        // update card order ids
+        nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
+      }
+      if (nextOverColumn) {
+        // delete card from previous column just in case
+        nextOverColumn.cards = nextOverColumn.cards.filter(card => card._id !== activeDraggingCardId)
+
+        const rebuild_activeDraggingCardData = {
+          ...activeDraggingCardData,
+          columnId: nextOverColumn._id
+        }
+
+        // insert card into new column index new
+        nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, rebuild_activeDraggingCardData)
+        // update card order ids
+        nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
+      }
+      return nextColumns
+    })
+  }
+
   // Handle drag start event
   const handleDragStart = (event) => {
     //console.log('Drag Started', event)
@@ -88,39 +139,15 @@ function BoardContent({ board }) {
 
     // If the card is being dragged to a different column with the current collums of the car
     if (activeColumn._id !== overColumn._id) {
-      setOrderedColumns((prev) => {
-
-        const overCardIndex = overColumn?.cards?.findIndex(card => card._id === overCardId)
-
-        let newCardIndex
-        const isBellowOverItem = active.rect?.current?.translated &&
-          active.rect.current.translated.top > (over.rect?.current?.top ?? 0) + (over.rect?.current?.height ?? 0)
-
-        const modifier = isBellowOverItem ? 1 : 0
-        newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards?.length + 1
-
-        // deep clone by lodash
-        const nextColumns = cloneDeep(prev)
-
-        const nextActiveColumn = nextColumns.find(col => col._id === activeColumn._id)
-        const nextOverColumn = nextColumns.find(col => col._id === overColumn._id)
-
-        if (nextActiveColumn) {
-          // delete card from previous column
-          nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
-          // update card order ids
-          nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
-        }
-        if (nextOverColumn) {
-          // delete card from previous column just in case
-          nextOverColumn.cards = nextOverColumn.cards.filter(card => card._id !== activeDraggingCardId)
-          // insert card into new column index new
-          nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, activeDraggingCardData)
-          // update card order ids
-          nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
-        }
-        return nextColumns
-      })
+      moveCardBetweenDifferentColumns(
+        overColumn,
+        overCardId,
+        active,
+        over,
+        activeColumn,
+        activeDraggingCardId,
+        activeDraggingCardData
+      )
     }
   }
 
@@ -149,42 +176,15 @@ function BoardContent({ board }) {
       if (oldColumnWhenDraggingCard._id !== overColumn._id) {
         // Card was moved to a different column
         // console.log('Card moved to different column')
-
-        setOrderedColumns((prev) => {
-          const overCardIndex = overColumn?.cards?.findIndex(card => card._id === overCardId)
-
-          let newCardIndex
-          const isBellowOverItem = active.rect?.current?.translated &&
-          active.rect.current.translated.top > (over.rect?.current?.top ?? 0) + (over.rect?.current?.height ?? 0)
-
-          const modifier = isBellowOverItem ? 1 : 0
-          newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards?.length + 1
-
-          // deep clone by lodash
-          const nextColumns = cloneDeep(prev)
-
-          const nextActiveColumn = nextColumns.find(col => col._id === activeColumn._id)
-          const nextOverColumn = nextColumns.find(col => col._id === overColumn._id)
-
-          if (nextActiveColumn) {
-          // delete card from previous column
-            nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
-            // update card order ids
-            nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
-          }
-          if (nextOverColumn) {
-          // delete card from previous column just in case
-            nextOverColumn.cards = nextOverColumn.cards.filter(card => card._id !== activeDraggingCardId)
-
-            // const rebuild_activeDraggingCardData =
-
-            // insert card into new column index new
-            nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, activeDraggingCardData)
-            // update card order ids
-            nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
-          }
-          return nextColumns
-        })
+        moveCardBetweenDifferentColumns(
+          overColumn,
+          overCardId,
+          active,
+          over,
+          activeColumn,
+          activeDraggingCardId,
+          activeDraggingCardData
+        )
       } else {
         // Card was moved within the same column
         // logic same as drag colums in board
