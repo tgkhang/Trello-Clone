@@ -6,7 +6,8 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Column from './ListColumns/Columns/Column'
 import Card from './ListColumns/Columns/ListCards/Card/Card'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, isEmpty } from 'lodash'
+import { generatePlaceholderCard } from '~/utils/formatter'
 
 // Define active drag item styles
 const ACTIVE_DRAG_ITEM_STYLE = {
@@ -84,6 +85,14 @@ function BoardContent({ board }) {
       if (nextActiveColumn) {
         // delete card from previous column
         nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
+
+        // add placeholder card if no cards left
+        // c1: if (nextActiveColumn.cards.length === 0)
+        // c2: lodash isEmpty
+        if (isEmpty(nextActiveColumn.cards)) {
+          nextActiveColumn.cards = [generatePlaceholderCard(nextActiveColumn)]
+        }
+
         // update card order ids
         nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
       }
@@ -98,6 +107,10 @@ function BoardContent({ board }) {
 
         // insert card into new column index new
         nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, rebuild_activeDraggingCardData)
+
+        // remove placeholder card if exists
+        nextOverColumn.cards = nextOverColumn.cards.filter(card => !card.FE_PlaceholderCard)
+
         // update card order ids
         nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
       }

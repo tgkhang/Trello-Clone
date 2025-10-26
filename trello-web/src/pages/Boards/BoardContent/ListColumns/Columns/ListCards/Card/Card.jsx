@@ -31,8 +31,8 @@ function Card({ card }) {
     // transform: CSS.Transform.toString(transform),
     transform: CSS.Translate.toString(transform),
     transition,
-    opacity : isDragging ? 0.5 : undefined,
-    border : isDragging ? '1px solid #2ecc71' : undefined,
+    opacity: isDragging ? 0.5 : undefined,
+    border: isDragging ? '1px solid #2ecc71' : undefined,
     // touchAction: 'none',
   }
 
@@ -44,6 +44,10 @@ function Card({ card }) {
         cursor: 'pointer',
         boxShadow: '0 1px 1px rgba(0,0,0,0.2)',
         overflow: 'unset',
+        // 3 ways to hide placeholder card
+        display: card?.FE_PlaceholderCard ? 'none' : 'block',
+        // overflow: card?.FE_PlaceholderCard ? 'hidden' : 'unset',
+        // height: card?.FE_PlaceholderCard ? 0 : 'unset'
       }}
     >
       {/* Show cover image if exists */}
