@@ -43,6 +43,7 @@ export default defineConfig([
       'react/react-in-jsx-scope': 'off', // Not needed in React 17+
       'react/prop-types': 'off', // Disable prop-types validation
       'react/jsx-no-undef': 'error', // Error on undefined components
+
       // Code quality
       'no-console': 'warn',
       'no-lonely-if': 'warn',
@@ -51,6 +52,7 @@ export default defineConfig([
       'no-multi-spaces': 'warn',
       'no-multiple-empty-lines': 'warn',
       'no-unexpected-multiline': 'warn',
+      'no-extra-boolean-cast': 'off',
 
       // Import/Export rules
       // 'import/no-unresolved': ['error', {

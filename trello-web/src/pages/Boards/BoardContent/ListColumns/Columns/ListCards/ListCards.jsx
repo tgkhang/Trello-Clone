@@ -29,7 +29,6 @@ function ListCards({ cards }) {
         {cards && cards.map((card) => (
           <Card key={card._id} card={card} />
         ))}
-
       </Box>
     </SortableContext>
 

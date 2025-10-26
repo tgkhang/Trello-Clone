@@ -4,7 +4,6 @@ import Button from '@mui/material/Button'
 import NoteAddIcon from '@mui/icons-material/NoteAdd'
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
 
-
 function ListColumns({ columns }) {
   return (
     //sortable context only use for items type ['id-1', 'id-2'] not an object
