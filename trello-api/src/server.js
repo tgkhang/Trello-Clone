@@ -1,13 +1,54 @@
+/* eslint-disable no-console */
+
+// https://www.npmjs.com/package/async-exit-hook
+import exitHook from 'async-exit-hook'
 import express from 'express'
+import { CONNECT_DB, CLOSE_DB } from '~/config/mongodb'
+import { env } from '~/config/environment.js'
 
-const app = express()
-const hostname = 'localhost' // Replace by domain if needed
-const PORT = process.env.PORT || 3000
 
-app.get('/', (req, res) => {
-  res.send('<h1>Hello World!</h1>')
-})
+const START_SERVER = () => {
+  const app = express()
+  const hostname = env.APP_HOST || 'localhost'
+  const PORT = env.APP_PORT || 3000
 
-app.listen(PORT, hostname, () => {
-  console.log(`Server is running on http://${hostname}:${PORT}`)
-})
+  app.get('/', async (req, res) => {
+
+    res.send('<h1>Hello World!</h1>')
+  })
+
+  app.listen(PORT, hostname, () => {
+    console.log(`3.Server is running on http://${hostname}:${PORT}`)
+  })
+
+  // Cleanup tasks before exit application
+  exitHook(() => {
+    console.log('\n4.Exiting application, closing MongoDB connection...')
+    CLOSE_DB()
+    console.log('5.MongoDB connection closed.')
+  })
+}
+
+// Using async/await syntax IIFE
+(async () => {
+  try {
+    console.log('1.Connecting to MongoDB...')
+    await CONNECT_DB()
+    console.log('2.Connected to MongoDB successfully!')
+    START_SERVER()
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error)
+    process.exit(0)
+  }
+})()
+
+
+// Or using .then() syntax
+// console.log('1.Connecting to MongoDB...')
+// CONNECT_DB()
+//   .then(() => console.log('2.Connected to MongoDB successfully!'))
+//   .then(() => START_SERVER())
+//   .catch((error) => {
+//     console.error('Error connecting to MongoDB:', error)
+//     process.exit(0)
+//   })
