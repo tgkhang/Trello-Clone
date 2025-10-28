@@ -13,8 +13,8 @@ const createNew = async (req, res, next) => {
 
     // abortEarly: false -> to show all errors at once
     await correctCondition.validateAsync(req.body, { abortEarly: false })
-    // next()
-    res.status(StatusCodes.CREATED).json({ status: 'POST123 from validation' })
+    // If validation is successful, proceed to the next middleware/controller
+    next()
   } catch (error) {
     res.status(StatusCodes.UNPROCESSABLE_ENTITY).json({
       errors: new Error(error).message
