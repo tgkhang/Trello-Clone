@@ -11,5 +11,8 @@ Router.route('/')
   })
   .post(boardValidation.createNew, boardController.createNew)
 
+Router.route('/:id')
+  .get(boardController.getDetails) // do not call validation as id is validated in controller
+  // .put() // TODO: add update handler when boardController.update is implemented
 
 export const boardRoute = Router
