@@ -1,15 +1,18 @@
 /* eslint-disable no-console */
 import exitHook from 'async-exit-hook' //// https://www.npmjs.com/package/async-exit-hook
 import express from 'express'
+import cors from 'cors'
 import { CONNECT_DB, CLOSE_DB } from '~/config/mongodb'
 import { env } from '~/config/environment.js'
 import { APIs_V1 } from '~/routes/v1'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
+import { corsOptions } from '~/config/cors.js'
 
 const START_SERVER = () => {
   const app = express()
   const hostname = env.APP_HOST || 'localhost'
   const PORT = env.APP_PORT || 3000
+  app.use(cors(corsOptions)) // Enable CORS for all routes by default
 
   // Middleware to parse JSON request bodies, enable request json body data
   app.use(express.json())
