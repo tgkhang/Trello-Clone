@@ -9,5 +9,6 @@ export const env = {
   APP_PORT: process.env.APP_PORT,
   MONGODB_USER: process.env.MONGODB_USER,
   MONGODB_PASSWORD: process.env.MONGODB_PASSWORD,
-  AUTHOR: process.env.AUTHOR
+  AUTHOR: process.env.AUTHOR,
+  BUILD_MODE: process.env.BUILD_MODE
 }
