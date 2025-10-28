@@ -10,6 +10,8 @@ const START_SERVER = () => {
   const hostname = env.APP_HOST || 'localhost'
   const PORT = env.APP_PORT || 3000
 
+  // Middleware to parse JSON request bodies, enable request json body data
+  app.use(express.json())
   app.use('/v1', APIs_V1)
 
   app.listen(PORT, hostname, () => {
