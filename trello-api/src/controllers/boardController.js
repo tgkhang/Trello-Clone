@@ -1,17 +1,15 @@
 import { StatusCodes } from 'http-status-codes'
-import ApiError from '~/utils/APIError.js'
+import { boardService } from '~/services/boardService.js'
 
 const createNew = async (req, res, next) => {
   try {
     // console.log('Request body in controller: ', req.body)
 
     // Controller navigate to SERVICE LAYER
-
-    //test
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'This is a custom error from Board Controller!')
+    const createdBoard = await boardService.createNew(req.body)
 
     // Return end response
-    // res.status(StatusCodes.CREATED).json({ status: 'POST from controller' })
+    res.status(StatusCodes.CREATED).json(createdBoard)
   } catch (error) { next(error) }
 }
 
