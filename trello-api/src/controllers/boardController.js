@@ -15,7 +15,7 @@ const createNew = async (req, res, next) => {
 
 const getDetails = async (req, res, next) => {
   try {
-    console.log('Board ID in controller: ', req.params)
+    // console.log('Board ID in controller: ', req.params)
     const boardId = req.params.id
 
     const boardDetails = await boardService.getDetails(boardId)
