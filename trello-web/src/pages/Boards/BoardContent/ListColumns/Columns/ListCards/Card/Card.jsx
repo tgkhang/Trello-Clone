@@ -46,6 +46,10 @@ function Card({ card }) {
         overflow: 'unset',
         // 3 ways to hide placeholder card
         display: card?.FE_PlaceholderCard ? 'none' : 'block',
+        border: '1px solid transparent',
+        '&:hover': {
+          boderColor: (theme) => theme.palette.primary.main,
+        }
         // overflow: card?.FE_PlaceholderCard ? 'hidden' : 'unset',
         // height: card?.FE_PlaceholderCard ? 0 : 'unset'
       }}
