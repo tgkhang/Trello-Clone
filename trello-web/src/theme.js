@@ -58,7 +58,7 @@ const theme = extendTheme({
       styleOverrides: {
         root: {
           // color: theme.palette.primary.main,
-          fontsize: '0.875rem',
+          fontSize: '0.875rem',
         }
       },
     },
@@ -77,7 +77,7 @@ const theme = extendTheme({
         // override the styles of the root element
         root: {
           // color: theme.palette.primary.main,
-          fontsize: '0.875rem',
+          fontSize: '0.875rem',
           // '.MuiOutlinedInput-notchedOutline': {
           //   borderColor: theme.palette.primary.light,
           // },

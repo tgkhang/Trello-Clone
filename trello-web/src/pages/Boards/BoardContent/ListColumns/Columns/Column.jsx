@@ -22,7 +22,6 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
-import theme from '~/theme'
 
 function Column({ column }) {
   // DnD Kit sortable hook
@@ -200,6 +199,7 @@ function Column({ column }) {
                 size='small'
                 variant='outlined'
                 autoFocus // auto focus when form opens
+                data-no-dnd="true" // custom attribute to block dnd kit events
                 value={newCardTitle}
                 onChange={(e) => setNewCardTitle(e.target.value)}
                 sx={{
