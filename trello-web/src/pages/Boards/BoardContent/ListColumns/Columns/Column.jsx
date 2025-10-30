@@ -22,6 +22,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
+import { toast } from 'react-toastify'
 
 function Column({ column }) {
   // DnD Kit sortable hook
@@ -57,7 +58,7 @@ function Column({ column }) {
 
   const addNewCard = () => {
     if (!newCardTitle.trim()) {
-      // console.error('Please enter a valid card title')
+      toast.error('Please enter a valid card title')
       return
     }
     // console.log('Add new card:', newCardTitle)
