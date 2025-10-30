@@ -30,6 +30,7 @@ export default [
     },
     rules: {
       // Common
+      'no-useless-catch': 'off',
       'no-console': 'warn',
       'no-extra-boolean-cast': 'off',
       'no-lonely-if': 'warn',

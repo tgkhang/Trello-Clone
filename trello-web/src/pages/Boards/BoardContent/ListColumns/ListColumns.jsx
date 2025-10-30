@@ -8,21 +8,28 @@ import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
 
-function ListColumns({ columns }) {
+function ListColumns({ columns, createNewColumn, createNewCard }) {
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false)
   const toggleOpenNewColumnForm = () => setOpenNewColumnForm(prev => !prev)
 
   const [newColumnTitle, setNewColumnTitle] = useState('')
 
-  const addNewColumn = () => {
+  const addNewColumn = async() => {
     //toast.error('Please enter a valid column title')
     if (!newColumnTitle)
     {
       toast.error('Please enter a valid column title')
       return
     }
-    // console.log('Add new column:', newColumnTitle)
+
     // Api call
+    // pass board id from parent component (Board content) to this component for calling but it is not good
+    const newColumnData ={
+      title: newColumnTitle,
+    }
+
+    // To Do Use Redux
+    await createNewColumn(newColumnData)
 
     // Reset form
     toggleOpenNewColumnForm()
@@ -42,7 +49,11 @@ function ListColumns({ columns }) {
         '&::-webkit-scrollbar-track': { m: 2 },
       }}>
         {columns && columns.map((column) => (
-          <Column key={column._id} column={column} />
+          <Column
+            key={column._id}
+            column={column}
+            createNewCard={createNewCard}
+          />
         ))}
 
 

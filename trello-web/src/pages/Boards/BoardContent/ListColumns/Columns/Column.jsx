@@ -24,7 +24,7 @@ import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
 
-function Column({ column }) {
+function Column({ column, createNewCard }) {
   // DnD Kit sortable hook
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
@@ -56,13 +56,20 @@ function Column({ column }) {
 
   const [newCardTitle, setNewCardTitle] = useState('')
 
-  const addNewCard = () => {
+  const addNewCard = async () => {
     if (!newCardTitle.trim()) {
       toast.error('Please enter a valid card title')
       return
     }
     // console.log('Add new card:', newCardTitle)
     // Api call
+    const newCardData ={
+      title: newCardTitle,
+      columnId: column._id,
+    }
+
+    // To Do Use Redux
+    await createNewCard(newCardData)
 
     // Reset form
     toggleOpenNewCardForm()
