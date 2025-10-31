@@ -10,13 +10,15 @@ import { mapOrder } from '~/utils/sort'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
+import { toast } from 'react-toastify'
 import {
   fetchBoardDetailsAPI,
   createNewColumnAPI,
   createNewCardAPI,
   updateBoardDetailsAPI,
   updateColumnDetailsAPI,
-  moveCardToDifferentColumnAPI
+  moveCardToDifferentColumnAPI,
+  deleteColumnDetailsAPI
 } from '~/apis'
 
 
@@ -202,16 +204,34 @@ function Board() {
     })
   }
 
+  // Handle delete column and cards inside
+  const deleteColumnDetails = (columnId) => {
+    // update state board
+    setBoard(prevBoard => {
+      if (!prevBoard) return prevBoard
+      return {
+        ...prevBoard,
+        columns: prevBoard.columns.filter(col => col._id !== columnId),
+        columnOrderIds: prevBoard.columnOrderIds.filter(id => id !== columnId)
+      }
+    })
+
+    // call api to delete column
+    deleteColumnDetailsAPI(columnId).then(res => {
+      toast.success(res?.deleteResult)
+    })
+  }
+
   if (!board) {
     return (
       <Box
         sx={{
-          display:'flex',
-          justifyContent:'center',
-          alignItems:'center',
-          height:'100vh',
-          gap:2,
-          width:'100vw'
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          gap: 2,
+          width: '100vw'
         }}>
         <CircularProgress />
         <Typography>Loading board...</Typography>
@@ -225,11 +245,13 @@ function Board() {
       <BoardBar board={board} />
       <BoardContent
         board={board}
+        // can use redux or context api to avoid prop drilling
         createNewColumn={createNewColumn}
         createNewCard={createNewCard}
         moveColumn={moveColumn}
         moveCardInTheSameColumn={moveCardInTheSameColumn}
         moveCardToDifferentColumn={moveCardToDifferentColumn}
+        deleteColumnDetails={deleteColumnDetails}
       />
     </Container >
   )

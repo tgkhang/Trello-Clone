@@ -8,14 +8,20 @@ import { ThemeProvider } from '@mui/material/styles'
 import theme from '~/theme.js'
 import React from 'react'
 import { ToastContainer } from 'react-toastify'
+import { ConfirmProvider } from 'material-ui-confirm'
 
 createRoot(document.getElementById('root')).render(
-  // <StrictMode>
   <ThemeProvider theme={theme}>
-    <CssBaseline enableColorScheme />
-    <App />
-    {/* Init ToastContainer */}
-    <ToastContainer position='bottom-right' theme='colored' />
+    <ConfirmProvider defaultOptions={{
+      dialogActionsProps: { maxWidth: 'xs' },
+      confirmationButtonProps: { variant:'outlined' },
+      cancellationButtonProps: { color:'inherit' },
+      buttonOrder: ['confirm', 'cancel']
+    }}>
+      <CssBaseline enableColorScheme />
+      <App />
+      {/* Init ToastContainer */}
+      <ToastContainer position='bottom-right' theme='colored' />
+    </ConfirmProvider>
   </ThemeProvider>
-  // </StrictMode>,
 )

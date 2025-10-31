@@ -22,8 +22,9 @@ import { CSS } from '@dnd-kit/utilities'
 import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
+import { useConfirm } from 'material-ui-confirm'
 
-function Column({ column, createNewCard }) {
+function Column({ column, createNewCard, deleteColumnDetails }) {
   // DnD Kit sortable hook
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
@@ -62,7 +63,7 @@ function Column({ column, createNewCard }) {
     }
     // console.log('Add new card:', newCardTitle)
     // Api call
-    const newCardData ={
+    const newCardData = {
       title: newCardTitle,
       columnId: column._id,
     }
@@ -77,6 +78,32 @@ function Column({ column, createNewCard }) {
 
   // Order card has been sorted in parent components
   const orderedCards = column.cards
+
+  // Handle delete column and cards
+  const confirmDeleteColumn = useConfirm()
+  const handleDeleteColumn = async () => {
+
+    const { confirmed } = await confirmDeleteColumn({
+      title: 'Delete this column?',
+      description: 'This action will permanently delete this column and all cards in it. Are you sure you want to proceed?',
+      confirmationText: 'Confirm',
+      cancellationText: 'Cancel',
+      // global options can be overridden here
+      // dialogActionsProps: { maxWidth: 'xs' },
+      // confirmationButtonProps: { variant:'outlined' },
+      // cancellationButtonProps: { color:'inherit' }
+    })
+
+    if (confirmed) {
+      // console.log(column._id)
+
+      deleteColumnDetails(column._id)
+    }
+
+    // console.log(reason)
+    //=> "confirm" | "cancel" | "natural" | "unmount"
+
+  }
 
   return (
     <div ref={setNodeRef} style={dndKitColumnStyle} {...attributes} >
@@ -132,14 +159,23 @@ function Column({ column, createNewCard }) {
               anchorEl={anchorEl}
               open={open}
               onClose={handleClose}
+              onClick={handleClose}
               slotProps={{
                 list: {
                   'aria-labelledby': 'basic-column-dropdown',
                 },
               }}
             >
-              <MenuItem>
-                <ListItemIcon><AddCardIcon fontSize="small" /></ListItemIcon>
+              <MenuItem
+                sx={{
+                  '&:hover': {
+                    color: 'success.light',
+                    '& .add-card-icon': { color: 'success.light' }
+                  }
+                }}
+                onClick={toggleOpenNewCardForm}
+              >
+                <ListItemIcon><AddCardIcon className='add-card-icon' fontSize="small" /></ListItemIcon>
                 <ListItemText>Add new card</ListItemText>
               </MenuItem>
               <MenuItem>
@@ -155,11 +191,21 @@ function Column({ column, createNewCard }) {
                 <ListItemText>Paste</ListItemText>
               </MenuItem>
               <Divider />
-              <MenuItem>
-                <ListItemIcon><DeleteForeverIcon fontSize="small" /></ListItemIcon>
+              <MenuItem
+                sx={{
+                  '&:hover': {
+                    color: 'warning.dark',
+                    '& .delete-forever-icon': { color: 'warning.dark' }
+                  }
+                }}
+                onClick={handleDeleteColumn}
+              >
+                <ListItemIcon><DeleteForeverIcon className='delete-forever-icon' fontSize="small" /></ListItemIcon>
                 <ListItemText>Remove this column</ListItemText>
               </MenuItem>
-              <MenuItem>
+              <MenuItem
+
+              >
                 <ListItemIcon><Cloud fontSize="small" /></ListItemIcon>
                 <ListItemText>Archive this column</ListItemText>
               </MenuItem>
