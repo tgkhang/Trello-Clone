@@ -8,7 +8,12 @@ import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
 
-function ListColumns({ columns, createNewColumn, createNewCard }) {
+function ListColumns({
+  columns,
+  createNewColumn,
+  createNewCard,
+  deleteColumnDetails
+}) {
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false)
   const toggleOpenNewColumnForm = () => setOpenNewColumnForm(prev => !prev)
 
@@ -16,15 +21,14 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
 
   const addNewColumn = () => {
     //toast.error('Please enter a valid column title')
-    if (!newColumnTitle)
-    {
+    if (!newColumnTitle) {
       toast.error('Please enter a valid column title')
       return
     }
 
     // Api call
     // pass board id from parent component (Board content) to this component for calling but it is not good
-    const newColumnData ={
+    const newColumnData = {
       title: newColumnTitle,
     }
 
@@ -53,6 +57,7 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
             key={column._id}
             column={column}
             createNewCard={createNewCard}
+            deleteColumnDetails={deleteColumnDetails}
           />
         ))}
 
@@ -79,18 +84,18 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
                 py: 1,
               }}
             >
-            Add new column
+              Add new column
             </Button>
           </Box>
           :
           // New Column Form
           <Box
-            sx= {{
+            sx={{
               minWidth: '250px',
               maxWidth: '250px',
               mx: 2,
-              p:1,
-              gap:1,
+              p: 1,
+              gap: 1,
               borderRadius: '6px',
               height: 'fit-content',
               bgcolor: '#ffffff3d',
@@ -118,9 +123,9 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
             />
             <Box
               sx={{
-                display:'flex',
-                alignItems:'center',
-                gap:1
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
               }}
             >
               <Button
@@ -128,7 +133,7 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
                 color='success'
                 size='small'
                 sx={{
-                  boxShadow:'none',
+                  boxShadow: 'none',
                   border: '0.5px solid',
                   borderColor: (theme) => theme.palette.success.main,
                   '&:hover': { bgcolor: (theme) => theme.palette.success.main },
