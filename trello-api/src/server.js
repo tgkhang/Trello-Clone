@@ -10,8 +10,8 @@ import { corsOptions } from '~/config/cors.js'
 
 const START_SERVER = () => {
   const app = express()
-  const hostname = env.APP_HOST || 'localhost'
-  const PORT = env.APP_PORT || 3000
+  const hostname = env.LOCAL_DEV_APP_HOST || 'localhost'
+  const PORT = env.LOCAL_DEV_APP_PORT || 3000
   app.use(cors(corsOptions)) // Enable CORS for all routes by default
 
   // Middleware to parse JSON request bodies, enable request json body data
@@ -21,10 +21,16 @@ const START_SERVER = () => {
   // Middleware for handling errors globally
   app.use(errorHandlingMiddleware)
 
+  if (env.BUILD_MODE === 'production') {
+    app.listen(process.env.PORT, () => {
+      console.log(`3.Production: Server is running at ${process.env.PORT}`)
+    })
+  } else {
+    app.listen(PORT, hostname, () => {
+      console.log(`3.Local: Server is running on http://${hostname}:${PORT}`)
+    })
+  }
 
-  app.listen(PORT, hostname, () => {
-    console.log(`3.Server is running on http://${hostname}:${PORT}`)
-  })
 
   // Cleanup tasks before exit application
   exitHook(() => {
