@@ -9,7 +9,10 @@ export const corsOptions = {
     // console.log('CORS Origin:', origin)
     // Allow api call in dev environment with Postman or similar tools
     // normally when using postman the origin will be undefined
-    if (!origin && env.BUILD_MODE === 'dev') {
+    // if (!origin && env.BUILD_MODE === 'dev') {
+
+    // if origin is undefined in dev mode pass the CORS
+    if (env.BUILD_MODE === 'dev') {
       return callback(null, true)
     }
 
