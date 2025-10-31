@@ -7,6 +7,10 @@ export const fetchBoardDetailsAPI= async(boardId) => {
   // axios automatically parses the JSON response, stored in response.data
   return response.data
 }
+export const updateBoardDetailsAPI= async(boardId, updateData) => {
+  const response= await axios.put(`${API_ROOT}/v1/boards/${boardId}`, updateData)
+  return response.data
+}
 
 /** Column APIs */
 export const createNewColumnAPI = async (newColumnData) => {

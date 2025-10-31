@@ -27,7 +27,7 @@ const ACTIVE_DRAG_ITEM_STYLE = {
   CARD: 'ACTIVE_DRAG_ITEM_STYLE_CARD',
 }
 
-function BoardContent({ board, createNewColumn, createNewCard }) {
+function BoardContent({ board, createNewColumn, createNewCard, moveColumn }) {
   // const pointerSensor = useSensor(PointerSensor,
   //   {
   //     // require user to move 10 pixels before activating drag
@@ -235,6 +235,7 @@ function BoardContent({ board, createNewColumn, createNewCard }) {
 
     }
 
+    // Handle column drag end
     if (activeDragItemType === ACTIVE_DRAG_ITEM_STYLE.COLUMN) {
       // Handle column drag end
       // Check if the item was moved to a different position
@@ -243,11 +244,8 @@ function BoardContent({ board, createNewColumn, createNewCard }) {
         const newColumnIndex = orderedColumns.findIndex(col => col._id === over.id)
 
         const dndOrderedColumns = arrayMove(orderedColumns, oldColumnIndex, newColumnIndex)
-        //const dndOrderedColumnsIds = dndOrderedColumns.map(col => col._id)
-
-        // console.log(dndOrderedColumns)
-        // console.log({ dndOrderedColumnsIds })
-
+        moveColumn(dndOrderedColumns)
+        // do not call await to prevent flickering ui
         setOrderedColumns(dndOrderedColumns)
       }
     }

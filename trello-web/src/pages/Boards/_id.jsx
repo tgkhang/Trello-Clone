@@ -4,7 +4,7 @@ import BoardBar from './BoardBar/BoardBar'
 import AppBar from '~/components/AppBar/AppBar'
 // import { mockData } from '~/apis/mock-data'
 import { useEffect, useState } from 'react'
-import { fetchBoardDetailsAPI, createNewColumnAPI, createNewCardAPI } from '~/apis'
+import { fetchBoardDetailsAPI, createNewColumnAPI, createNewCardAPI, updateBoardDetailsAPI } from '~/apis'
 import { generatePlaceholderCard } from '~/utils/formatter'
 import { isEmpty } from 'lodash'
 
@@ -90,6 +90,26 @@ function Board() {
 
   }
 
+  // Calling api to move column
+  const moveColumn = async (dndOrderedColumns) => {
+    const dndOrderedColumnsIds = dndOrderedColumns.map(col => col._id)
+
+    // console.log(dndOrderedColumns)
+    // console.log({ dndOrderedColumnsIds })
+    setBoard(prevBoard => {
+      if (!prevBoard) return prevBoard
+
+      return {
+        ...prevBoard,
+        columns: [...dndOrderedColumns],
+        columnOrderIds: [...dndOrderedColumnsIds]
+      }
+    })
+
+    // Call api to update column order in board
+    await updateBoardDetailsAPI(board._id, { columnOrderIds: dndOrderedColumnsIds })
+  }
+
   return (
     <Container disableGutters maxWidth={false} sx={{ height: '100vh' }}>
       <AppBar />
@@ -98,6 +118,7 @@ function Board() {
         board={board}
         createNewColumn={createNewColumn}
         createNewCard={createNewCard}
+        moveColumn={moveColumn}
       />
     </Container >
   )
