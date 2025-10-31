@@ -56,7 +56,7 @@ function Column({ column, createNewCard }) {
 
   const [newCardTitle, setNewCardTitle] = useState('')
 
-  const addNewCard = async () => {
+  const addNewCard = () => {
     if (!newCardTitle.trim()) {
       toast.error('Please enter a valid card title')
       return
@@ -69,7 +69,7 @@ function Column({ column, createNewCard }) {
     }
 
     // To Do Use Redux
-    await createNewCard(newCardData)
+    createNewCard(newCardData)
 
     // Reset form
     toggleOpenNewCardForm()

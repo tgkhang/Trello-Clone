@@ -54,7 +54,6 @@ const getDetails = async (boardId) => {
   }
 }
 
-
 const update = async (boardId, reqBody) => {
   try {
     const updateData = {
