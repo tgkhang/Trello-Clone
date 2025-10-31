@@ -4,9 +4,21 @@ import BoardBar from './BoardBar/BoardBar'
 import AppBar from '~/components/AppBar/AppBar'
 // import { mockData } from '~/apis/mock-data'
 import { useEffect, useState } from 'react'
-import { fetchBoardDetailsAPI, createNewColumnAPI, createNewCardAPI, updateBoardDetailsAPI } from '~/apis'
 import { generatePlaceholderCard } from '~/utils/formatter'
 import { isEmpty } from 'lodash'
+import { mapOrder } from '~/utils/sort'
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
+import Typography from '@mui/material/Typography'
+import {
+  fetchBoardDetailsAPI,
+  createNewColumnAPI,
+  createNewCardAPI,
+  updateBoardDetailsAPI,
+  updateColumnDetailsAPI,
+  moveCardToDifferentColumnAPI
+} from '~/apis'
+
 
 function Board() {
   const [board, setBoard] = useState(null)
@@ -15,6 +27,10 @@ function Board() {
     const boardId = '690226e2f7a61739bcbae00d'
 
     fetchBoardDetailsAPI(boardId).then(board => {
+
+      // sort data column order before passing to child component
+      board.columns = mapOrder(board.columns, board.columnOrderIds, '_id')
+
       board.columns.forEach(column => {
         // drag with empty columns
         if (isEmpty(column.cards)) {
@@ -22,7 +38,11 @@ function Board() {
           column.cards = [placeholderCard]
           column.cardOrderIds = [placeholderCard._id]
         }
-        // console.log(column.cards)
+        else {
+          // sort cards before passing to child component
+          column.cards = mapOrder(column.cards, column.cardOrderIds, '_id')
+        }
+
       })
       setBoard(board)
     })
@@ -87,11 +107,10 @@ function Board() {
         columns: updatedColumns
       }
     })
-
   }
 
   // Calling api to move column
-  const moveColumn = async (dndOrderedColumns) => {
+  const moveColumn = (dndOrderedColumns) => {
     const dndOrderedColumnsIds = dndOrderedColumns.map(col => col._id)
 
     // console.log(dndOrderedColumns)
@@ -107,7 +126,79 @@ function Board() {
     })
 
     // Call api to update column order in board
-    await updateBoardDetailsAPI(board._id, { columnOrderIds: dndOrderedColumnsIds })
+    updateBoardDetailsAPI(board._id, { columnOrderIds: dndOrderedColumnsIds })
+  }
+
+  // Calling api to move card
+  // when moving card in the same column, just need to call api to update cardOrderIds in that column
+  const moveCardInTheSameColumn = (dndOrderedCards, dndOrderedCardIds, columnId) => {
+    // update state board
+    setBoard(prev => {
+      if (!prev) return prev
+
+      const updatedColumns = prev.columns.map(column => {
+        if (column._id === columnId) {
+          return {
+            ...column,
+            cards: dndOrderedCards,
+            cardOrderIds: dndOrderedCardIds
+          }
+        }
+        return column
+      })
+      return {
+        ...prev,
+        columns: updatedColumns
+      }
+    })
+    // Call api to update card order in that column
+    updateColumnDetailsAPI(columnId, { cardOrderIds: dndOrderedCardIds })
+  }
+
+  // moving card to different column
+  // 3 step
+  // 1. update cardOrderIds in source column
+  // 2. update cardOrderIds in destination column
+  // 3. update columnId in moved card
+  // distinct API call
+  const moveCardToDifferentColumn = (currentCardId, prevColumnId, nextColumnId, dndOrderedColumns) => {
+    
+    const dndOrderedColumnsIds = dndOrderedColumns.map(col => col._id)
+    // update state board
+    setBoard(prevBoard => {
+      if (!prevBoard) return prevBoard
+
+      return {
+        ...prevBoard,
+        columns: [...dndOrderedColumns],
+        columnOrderIds: [...dndOrderedColumnsIds]
+      }
+    })
+    // call api
+    moveCardToDifferentColumnAPI({
+      currentCardId,
+      prevColumnId,
+      prevCardOrderIds: dndOrderedColumns.find(col => col._id === prevColumnId).cardOrderIds,
+      nextColumnId,
+      nextCardOrderIds: dndOrderedColumns.find(col => col._id === nextColumnId).cardOrderIds
+    })
+  }
+
+  if (!board) {
+    return (
+      <Box
+        sx={{
+          display:'flex',
+          justifyContent:'center',
+          alignItems:'center',
+          height:'100vh',
+          gap:2,
+          width:'100vw'
+        }}>
+        <CircularProgress />
+        <Typography>Loading board...</Typography>
+      </Box>
+    )
   }
 
   return (
@@ -119,6 +210,8 @@ function Board() {
         createNewColumn={createNewColumn}
         createNewCard={createNewCard}
         moveColumn={moveColumn}
+        moveCardInTheSameColumn={moveCardInTheSameColumn}
+        moveCardToDifferentColumn={moveCardToDifferentColumn}
       />
     </Container >
   )

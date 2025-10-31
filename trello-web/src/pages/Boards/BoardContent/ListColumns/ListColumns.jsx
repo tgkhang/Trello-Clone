@@ -14,7 +14,7 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
 
   const [newColumnTitle, setNewColumnTitle] = useState('')
 
-  const addNewColumn = async() => {
+  const addNewColumn = () => {
     //toast.error('Please enter a valid column title')
     if (!newColumnTitle)
     {
@@ -29,7 +29,7 @@ function ListColumns({ columns, createNewColumn, createNewCard }) {
     }
 
     // To Do Use Redux
-    await createNewColumn(newColumnData)
+    createNewColumn(newColumnData)
 
     // Reset form
     toggleOpenNewColumnForm()

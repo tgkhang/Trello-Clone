@@ -17,7 +17,6 @@ import Button from '@mui/material/Button'
 import DragHandleIcon from '@mui/icons-material/DragHandle'
 import { useState } from 'react'
 import ListCards from './ListCards/ListCards'
-import { mapOrder } from '~/utils/sort'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import TextField from '@mui/material/TextField'
@@ -56,7 +55,7 @@ function Column({ column, createNewCard }) {
 
   const [newCardTitle, setNewCardTitle] = useState('')
 
-  const addNewCard = async () => {
+  const addNewCard = () => {
     if (!newCardTitle.trim()) {
       toast.error('Please enter a valid card title')
       return
@@ -69,15 +68,15 @@ function Column({ column, createNewCard }) {
     }
 
     // To Do Use Redux
-    await createNewCard(newCardData)
+    createNewCard(newCardData)
 
     // Reset form
     toggleOpenNewCardForm()
     setNewCardTitle('')
   }
 
-  // Order cards
-  const orderedCards = mapOrder(column?.cards, column?.cardOrderIds, '_id')
+  // Order card has been sorted in parent components
+  const orderedCards = column.cards
 
   return (
     <div ref={setNodeRef} style={dndKitColumnStyle} {...attributes} >

@@ -4,6 +4,8 @@ import ApiError from '~/utils/ApiError'
 import { slugify } from '~/utils/formatters'
 import { StatusCodes } from 'http-status-codes'
 import { cloneDeep } from 'lodash'
+import { columnModel } from '~/models/columnModel'
+import { cardModel } from '~/models/cardModel'
 
 const createNew = async (reqBody) => {
   try {
@@ -38,10 +40,10 @@ const getDetails = async (boardId) => {
     }
 
     // new board do not affect the old board
-    const resBoard= cloneDeep(board)
+    const resBoard = cloneDeep(board)
     resBoard.columns.forEach(column => {
       // using toString() of javascript
-      column.cards= resBoard.cards.filter(card => card.columnId.toString() === column._id.toString())
+      column.cards = resBoard.cards.filter(card => card.columnId.toString() === column._id.toString())
 
       // mongodb method support equals
       // column.cards= resBoard.cards.filter(card => card.columnId.equals(column._id)
@@ -53,7 +55,6 @@ const getDetails = async (boardId) => {
     throw error
   }
 }
-
 
 const update = async (boardId, reqBody) => {
   try {
@@ -68,8 +69,40 @@ const update = async (boardId, reqBody) => {
   }
 }
 
+/*
+ currentCardId,
+      prevColumnId,
+      prevCardOrderIds: dndOrderedColumns.find(col => col._id === prevColumnId).cardOrderIds,
+      nextColumnId,
+      nextCardOrderIds: dndOrderedColumns.find(col => col._id === nextColumnId).cardOrderIds
+*/
+const moveCardToDifferentColumn = async (reqBody) => {
+  try {
+    // 3 step
+    // 1. update cardOrderIds in source column
+    await columnModel.update(reqBody.prevColumnId, {
+      cardOrderIds: reqBody.prevCardOrderIds,
+      updatedAt: Date.now()
+    })
+    // 2. update cardOrderIds in destination column
+    await columnModel.update(reqBody.nextColumnId, {
+      cardOrderIds: reqBody.nextCardOrderIds,
+      updatedAt: Date.now()
+    })
+    // 3. update columnId in moved card
+    await cardModel.update(reqBody.currentCardId, {
+      columnId: reqBody.nextColumnId
+    })
+
+    return { updateResult: 'Successfully!' }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const boardService = {
   createNew,
   getDetails,
-  update
+  update,
+  moveCardToDifferentColumn
 }
