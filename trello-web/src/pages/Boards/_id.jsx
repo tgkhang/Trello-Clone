@@ -7,6 +7,10 @@ import { useEffect, useState } from 'react'
 import { fetchBoardDetailsAPI, createNewColumnAPI, createNewCardAPI, updateBoardDetailsAPI, updateColumnDetailsAPI } from '~/apis'
 import { generatePlaceholderCard } from '~/utils/formatter'
 import { isEmpty } from 'lodash'
+import { mapOrder } from '~/utils/sort'
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
+import Typography from '@mui/material/Typography'
 
 function Board() {
   const [board, setBoard] = useState(null)
@@ -15,6 +19,10 @@ function Board() {
     const boardId = '690226e2f7a61739bcbae00d'
 
     fetchBoardDetailsAPI(boardId).then(board => {
+
+      // sort data column order before passing to child component
+      board.columns = mapOrder(board.columns, board.columnOrderIds, '_id')
+
       board.columns.forEach(column => {
         // drag with empty columns
         if (isEmpty(column.cards)) {
@@ -22,7 +30,11 @@ function Board() {
           column.cards = [placeholderCard]
           column.cardOrderIds = [placeholderCard._id]
         }
-        // console.log(column.cards)
+        else {
+          // sort cards before passing to child component
+          column.cards = mapOrder(column.cards, column.cardOrderIds, '_id')
+        }
+
       })
       setBoard(board)
     })
@@ -133,6 +145,23 @@ function Board() {
     })
     // Call api to update card order in that column
     updateColumnDetailsAPI(columnId, { cardOrderIds: dndOrderedCardIds })
+  }
+
+  if (!board) {
+    return (
+      <Box
+        sx={{
+          display:'flex',
+          justifyContent:'center',
+          alignItems:'center',
+          height:'100vh',
+          gap:2,
+          width:'100vw'
+        }}>
+        <CircularProgress />
+        <Typography>Loading board...</Typography>
+      </Box>
+    )
   }
 
   return (

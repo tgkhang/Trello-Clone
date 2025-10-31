@@ -1,9 +1,7 @@
 import Box from '@mui/material/Box'
 import ListColumns from './ListColumns/ListColumns'
-import { mapOrder } from '~/utils/sort'
 import {
   DndContext, useSensor,
-  //MouseSensor, TouchSensor,
   useSensors,
   DragOverlay,
   defaultDropAnimationSideEffects,
@@ -65,8 +63,7 @@ function BoardContent({
 
   // Update ordered columns when board data changes
   useEffect(() => {
-    const tmp = mapOrder(board?.columns, board?.columnOrderIds, '_id')
-    setOrderedColumns(tmp)
+    setOrderedColumns(board.columns)
   }, [board])
 
   const findColumnByCardId = (cardId) => {
