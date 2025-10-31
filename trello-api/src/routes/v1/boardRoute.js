@@ -13,6 +13,6 @@ Router.route('/')
 
 Router.route('/:id')
   .get(boardController.getDetails) // do not call validation as id is validated in controller
-  // .put() // TODO: add update handler when boardController.update is implemented
+  .put(boardValidation.update, boardController.update)
 
 export const boardRoute = Router
