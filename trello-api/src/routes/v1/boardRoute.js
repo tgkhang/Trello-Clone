@@ -15,4 +15,8 @@ Router.route('/:id')
   .get(boardController.getDetails) // do not call validation as id is validated in controller
   .put(boardValidation.update, boardController.update)
 
+// api support moving cards between different columns
+Router.route('/supports/moving_card')
+  .put(boardValidation.moveCardToDifferentColumn, boardController.moveCardToDifferentColumn)
+
 export const boardRoute = Router

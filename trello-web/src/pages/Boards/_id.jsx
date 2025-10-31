@@ -4,13 +4,21 @@ import BoardBar from './BoardBar/BoardBar'
 import AppBar from '~/components/AppBar/AppBar'
 // import { mockData } from '~/apis/mock-data'
 import { useEffect, useState } from 'react'
-import { fetchBoardDetailsAPI, createNewColumnAPI, createNewCardAPI, updateBoardDetailsAPI, updateColumnDetailsAPI } from '~/apis'
 import { generatePlaceholderCard } from '~/utils/formatter'
 import { isEmpty } from 'lodash'
 import { mapOrder } from '~/utils/sort'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
+import {
+  fetchBoardDetailsAPI,
+  createNewColumnAPI,
+  createNewCardAPI,
+  updateBoardDetailsAPI,
+  updateColumnDetailsAPI,
+  moveCardToDifferentColumnAPI
+} from '~/apis'
+
 
 function Board() {
   const [board, setBoard] = useState(null)
@@ -147,6 +155,35 @@ function Board() {
     updateColumnDetailsAPI(columnId, { cardOrderIds: dndOrderedCardIds })
   }
 
+  // moving card to different column
+  // 3 step
+  // 1. update cardOrderIds in source column
+  // 2. update cardOrderIds in destination column
+  // 3. update columnId in moved card
+  // distinct API call
+  const moveCardToDifferentColumn = (currentCardId, prevColumnId, nextColumnId, dndOrderedColumns) => {
+    
+    const dndOrderedColumnsIds = dndOrderedColumns.map(col => col._id)
+    // update state board
+    setBoard(prevBoard => {
+      if (!prevBoard) return prevBoard
+
+      return {
+        ...prevBoard,
+        columns: [...dndOrderedColumns],
+        columnOrderIds: [...dndOrderedColumnsIds]
+      }
+    })
+    // call api
+    moveCardToDifferentColumnAPI({
+      currentCardId,
+      prevColumnId,
+      prevCardOrderIds: dndOrderedColumns.find(col => col._id === prevColumnId).cardOrderIds,
+      nextColumnId,
+      nextCardOrderIds: dndOrderedColumns.find(col => col._id === nextColumnId).cardOrderIds
+    })
+  }
+
   if (!board) {
     return (
       <Box
@@ -174,6 +211,7 @@ function Board() {
         createNewCard={createNewCard}
         moveColumn={moveColumn}
         moveCardInTheSameColumn={moveCardInTheSameColumn}
+        moveCardToDifferentColumn={moveCardToDifferentColumn}
       />
     </Container >
   )

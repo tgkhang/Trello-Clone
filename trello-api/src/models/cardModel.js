@@ -17,6 +17,8 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
   _destroy: Joi.boolean().default(false)
 })
 
+// fields that cannot be updated
+const INVALID_UPDATE_FIELDS = ['_id', 'boardId', 'createdAt']
 
 const validateBeforeCreate = async (data) => {
   return await CARD_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
@@ -27,10 +29,10 @@ const createNew = async (data) => {
     const validData = await validateBeforeCreate(data)
     const newCardToAdd = {
       ...validData,
-      columnId : new ObjectId(validData.columnId),
-      boardId : new ObjectId(validData.boardId)
+      columnId: new ObjectId(validData.columnId),
+      boardId: new ObjectId(validData.boardId)
     }
-    const createdCard= await GET_DB().collection(CARD_COLLECTION_NAME).insertOne(newCardToAdd)
+    const createdCard = await GET_DB().collection(CARD_COLLECTION_NAME).insertOne(newCardToAdd)
     return createdCard
   } catch (error) { throw new Error(error) }
 }
@@ -38,7 +40,28 @@ const createNew = async (data) => {
 const findOneById = async (id) => {
   try {
     // return await GET_DB().collection(CARD_COLLECTION_NAME).findOne({ _id: id })
-    return await GET_DB().collection(CARD_COLLECTION_NAME).findOne({ _id: new ObjectId (id) })
+    return await GET_DB().collection(CARD_COLLECTION_NAME).findOne({ _id: new ObjectId(id) })
+  } catch (error) { throw new Error(error) }
+}
+
+const update = async (cardId, updateData) => {
+  try {
+    Object.keys(updateData).forEach(key => {
+      if (INVALID_UPDATE_FIELDS.includes(key)) {
+        delete updateData[key]
+      }
+    })
+
+    if (updateData.columnId) {
+      updateData.columnId = new ObjectId(updateData.columnId)
+    }
+
+    const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
+      { _id: new ObjectId(cardId) },
+      { $set: updateData },
+      { returnDocument: 'after' }
+    )
+    return result
   } catch (error) { throw new Error(error) }
 }
 
@@ -46,5 +69,6 @@ export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
   createNew,
+  update,
   findOneById
 }

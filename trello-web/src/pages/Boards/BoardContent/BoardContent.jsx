@@ -30,7 +30,8 @@ function BoardContent({
   createNewColumn,
   createNewCard,
   moveColumn,
-  moveCardInTheSameColumn
+  moveCardInTheSameColumn,
+  moveCardToDifferentColumn
 }) {
 
   // const pointerSensor = useSensor(PointerSensor,
@@ -79,7 +80,8 @@ function BoardContent({
     over,
     activeColumn,
     activeDraggingCardId,
-    activeDraggingCardData
+    activeDraggingCardData,
+    triggerFrom
   ) => {
     setOrderedColumns((prev) => {
       const overCardIndex = overColumn?.cards?.findIndex(card => card._id === overCardId)
@@ -130,6 +132,18 @@ function BoardContent({
         // update card order ids
         nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
       }
+
+      // call from handle drag end (finished, final dnd) call api
+      // calling api from props
+      // can be update by redux
+      if (triggerFrom === 'handleDragEnd') {
+        moveCardToDifferentColumn(
+          activeDraggingCardId,
+          oldColumnWhenDraggingCard._id,
+          nextOverColumn._id,
+          nextColumns
+        )
+      }
       return nextColumns
     })
   }
@@ -177,7 +191,8 @@ function BoardContent({
         over,
         activeColumn,
         activeDraggingCardId,
-        activeDraggingCardData
+        activeDraggingCardData,
+        'handleDragOver'
       )
     }
   }
@@ -214,7 +229,8 @@ function BoardContent({
           over,
           activeColumn,
           activeDraggingCardId,
-          activeDraggingCardData
+          activeDraggingCardData,
+          'handleDragEnd'
         )
       } else // Card was moved within the same column
       {
