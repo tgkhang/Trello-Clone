@@ -88,15 +88,28 @@ function Board() {
     // }
     // setBoard(newBoard)
 
+
+    // Update state board and remove placeholder card if any
     setBoard(prev => {
       if (!prev) return prev
 
       const updatedColumns = prev.columns.map(column => {
         if (column._id === createdNewCard.columnId) {
-          return {
-            ...column,
-            cards: [...column.cards, createdNewCard],
-            cardOrderIds: [...column.cardOrderIds, createdNewCard._id]
+
+          // Remove placeholder card if any
+          if (column.cards.some(card => card.FE_PlaceholderCard)) {
+            return {
+              ...column,
+              cards: [createdNewCard],
+              cardOrderIds: [createdNewCard._id]
+            }
+          }
+          else {
+            return {
+              ...column,
+              cards: [...column.cards, createdNewCard],
+              cardOrderIds: [...column.cardOrderIds, createdNewCard._id]
+            }
           }
         }
         return column
@@ -162,7 +175,7 @@ function Board() {
   // 3. update columnId in moved card
   // distinct API call
   const moveCardToDifferentColumn = (currentCardId, prevColumnId, nextColumnId, dndOrderedColumns) => {
-    
+
     const dndOrderedColumnsIds = dndOrderedColumns.map(col => col._id)
     // update state board
     setBoard(prevBoard => {
@@ -174,11 +187,16 @@ function Board() {
         columnOrderIds: [...dndOrderedColumnsIds]
       }
     })
+    // Hanle placeholder card in empty column
+    let prevCardOrderIds = dndOrderedColumns.find(col => col._id === prevColumnId)?.cardOrderIds
+    if (prevCardOrderIds.length === 1 && prevCardOrderIds[0].includes('-placeholder-card'))
+      prevCardOrderIds = []
+
     // call api
     moveCardToDifferentColumnAPI({
       currentCardId,
       prevColumnId,
-      prevCardOrderIds: dndOrderedColumns.find(col => col._id === prevColumnId).cardOrderIds,
+      prevCardOrderIds,
       nextColumnId,
       nextCardOrderIds: dndOrderedColumns.find(col => col._id === nextColumnId).cardOrderIds
     })
