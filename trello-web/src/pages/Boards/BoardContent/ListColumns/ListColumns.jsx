@@ -8,7 +8,7 @@ import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
 import { createNewColumnAPI } from '~/apis'
-import { generatePlaceholderCard } from '~/utils/formatter'
+import { generatePlaceholderCard } from '~/utils/formatters'
 import { selectCurrentActiveBoard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -148,6 +148,7 @@ function ListColumns({ columns }) {
               }}
             >
               <Button
+                className='interceptor-loading'
                 variant='contained'
                 color='success'
                 size='small'

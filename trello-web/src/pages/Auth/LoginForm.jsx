@@ -120,6 +120,7 @@ function LoginForm() {
               variant="contained"
               sx={{ mt: 3, mb: 2, py: 1.5 }}
               disabled={isSubmitting}
+              className='interceptor-loading'
             >
               {isSubmitting ? 'Signing In...' : 'Sign In'}
             </Button>

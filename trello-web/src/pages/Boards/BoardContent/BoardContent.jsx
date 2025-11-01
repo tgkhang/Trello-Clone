@@ -17,7 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Column from './ListColumns/Columns/Column'
 import Card from './ListColumns/Columns/ListCards/Card/Card'
 import { cloneDeep, isEmpty } from 'lodash'
-import { generatePlaceholderCard } from '~/utils/formatter'
+import { generatePlaceholderCard } from '~/utils/formatters'
 
 // Define active drag item styles
 const ACTIVE_DRAG_ITEM_STYLE = {
