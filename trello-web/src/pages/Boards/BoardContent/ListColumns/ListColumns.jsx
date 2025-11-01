@@ -7,19 +7,21 @@ import { useState } from 'react'
 import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
+import { createNewColumnAPI } from '~/apis'
+import { generatePlaceholderCard } from '~/utils/formatter'
+import { selectCurrentActiveBoard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
+import { useDispatch, useSelector } from 'react-redux'
 
-function ListColumns({
-  columns,
-  createNewColumn,
-  createNewCard,
-  deleteColumnDetails
-}) {
+function ListColumns({ columns }) {
+  const board = useSelector(selectCurrentActiveBoard)
+  const dispatch = useDispatch()
+
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false)
   const toggleOpenNewColumnForm = () => setOpenNewColumnForm(prev => !prev)
 
   const [newColumnTitle, setNewColumnTitle] = useState('')
 
-  const addNewColumn = () => {
+  const addNewColumn = async () => {
     //toast.error('Please enter a valid column title')
     if (!newColumnTitle) {
       toast.error('Please enter a valid column title')
@@ -32,9 +34,32 @@ function ListColumns({
       title: newColumnTitle,
     }
 
-    // To Do Use Redux
-    createNewColumn(newColumnData)
+    // this bloc call api create new column and renew data in state board
+    // ===================================================
+    const createdNewColumn = await createNewColumnAPI({
+      ...newColumnData,
+      boardId: board._id
+    })
 
+    // New thing need placehodler card for drag and drop with empty column
+    createdNewColumn.cards = [generatePlaceholderCard(createdNewColumn)]
+    createdNewColumn.cardOrderIds = [generatePlaceholderCard(createdNewColumn._id)]
+
+    // setBoard(prevBoard => {
+    //   if (!prevBoard) return prevBoard
+
+    //   return {
+    //     ...prevBoard,
+    //     columns: [...prevBoard.columns, createdNewColumn],
+    //     columnOrderIds: [...prevBoard.columnOrderIds, createdNewColumn._id]
+    //   }
+    // })
+    dispatch(updateCurrentActiveBoard({
+      ...board,
+      columns: [...board.columns, createdNewColumn],
+      columnOrderIds: [...board.columnOrderIds, createdNewColumn._id]
+    }))
+    // ===================================================
     // Reset form
     toggleOpenNewColumnForm()
     setNewColumnTitle('')
@@ -53,14 +78,8 @@ function ListColumns({
         '&::-webkit-scrollbar-track': { m: 2 },
       }}>
         {columns && columns.map((column) => (
-          <Column
-            key={column._id}
-            column={column}
-            createNewCard={createNewCard}
-            deleteColumnDetails={deleteColumnDetails}
-          />
+          <Column key={column._id} column={column} />
         ))}
-
 
         {!openNewColumnForm ?
           <Box
