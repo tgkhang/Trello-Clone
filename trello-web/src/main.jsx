@@ -9,19 +9,23 @@ import theme from '~/theme.js'
 import React from 'react'
 import { ToastContainer } from 'react-toastify'
 import { ConfirmProvider } from 'material-ui-confirm'
+import { store } from '~/redux/store.js'
+import { Provider } from 'react-redux'
 
 createRoot(document.getElementById('root')).render(
-  <ThemeProvider theme={theme}>
-    <ConfirmProvider defaultOptions={{
-      dialogActionsProps: { maxWidth: 'xs' },
-      confirmationButtonProps: { variant:'outlined' },
-      cancellationButtonProps: { color:'inherit' },
-      buttonOrder: ['confirm', 'cancel']
-    }}>
-      <CssBaseline enableColorScheme />
-      <App />
-      {/* Init ToastContainer */}
-      <ToastContainer position='bottom-right' theme='colored' />
-    </ConfirmProvider>
-  </ThemeProvider>
+  <Provider store={store}>
+    <ThemeProvider theme={theme}>
+      <ConfirmProvider defaultOptions={{
+        dialogActionsProps: { maxWidth: 'xs' },
+        confirmationButtonProps: { variant:'outlined' },
+        cancellationButtonProps: { color:'inherit' },
+        buttonOrder: ['confirm', 'cancel']
+      }}>
+        <CssBaseline enableColorScheme />
+        <App />
+        {/* Init ToastContainer */}
+        <ToastContainer position='bottom-right' theme='colored' />
+      </ConfirmProvider>
+    </ThemeProvider>
+  </Provider>
 )
