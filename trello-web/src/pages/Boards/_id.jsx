@@ -9,6 +9,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import { fetchBoardDetailsAPI, selectCurrentActiveBoard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import { useDispatch, useSelector } from 'react-redux'
+import { useParams } from 'react-router-dom'
 import {
   updateBoardDetailsAPI,
   updateColumnDetailsAPI,
@@ -20,11 +21,12 @@ function Board() {
   const dispatch = useDispatch()
   // const [board, setBoard] = useState(null)
   const board = useSelector(selectCurrentActiveBoard)
+  const { boardId } = useParams()
 
   useEffect(() => {
-    const boardId = '690226e2f7a61739bcbae00d'
+    // const boardId = '690226e2f7a61739bcbae00d'
     dispatch(fetchBoardDetailsAPI(boardId)) // middleware need to wrap with dispatch
-  }, [dispatch])
+  }, [dispatch, boardId])
 
   // Calling api to move column
   const moveColumn = (dndOrderedColumns) => {
