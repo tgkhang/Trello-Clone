@@ -23,8 +23,14 @@ import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
 import { useConfirm } from 'material-ui-confirm'
+import { createNewCardAPI, deleteColumnDetailsAPI } from '~/apis'
+import { selectCurrentActiveBoard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
+import { useDispatch, useSelector } from 'react-redux'
 
-function Column({ column, createNewCard, deleteColumnDetails }) {
+function Column({ column }) {
+  const board = useSelector(selectCurrentActiveBoard)
+  const dispatch = useDispatch()
+
   // DnD Kit sortable hook
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
@@ -56,7 +62,7 @@ function Column({ column, createNewCard, deleteColumnDetails }) {
 
   const [newCardTitle, setNewCardTitle] = useState('')
 
-  const addNewCard = () => {
+  const addNewCard = async () => {
     if (!newCardTitle.trim()) {
       toast.error('Please enter a valid card title')
       return
@@ -68,8 +74,79 @@ function Column({ column, createNewCard, deleteColumnDetails }) {
       columnId: column._id,
     }
 
-    // To Do Use Redux
-    createNewCard(newCardData)
+    // this Block call api create new card and renew data in state board
+    // ===================================================
+    const createdNewCard = await createNewCardAPI(
+      {
+        ...newCardData,
+        boardId: board._id
+      }
+    )
+    // Renew column data
+    // const newBoard= { ...board }
+    // const columnToUpdate = newBoard.columns.find(column => column._id === createdNewCard.columnId)
+    // if (columnToUpdate)
+    // {
+    //   columnToUpdate.cards.push(createdNewCard)
+    //   columnToUpdate.cardOrderIds.push(createdNewCard._id)
+    // }
+    // setBoard(newBoard)
+
+
+    // Update state board and remove placeholder card if any
+    // setBoard(prev => {
+    //   if (!prev) return prev
+
+    //   const updatedColumns = prev.columns.map(column => {
+    //     if (column._id === createdNewCard.columnId) {
+
+    //       // Remove placeholder card if any
+    //       if (column.cards.some(card => card.FE_PlaceholderCard)) {
+    //         return {
+    //           ...column,
+    //           cards: [createdNewCard],
+    //           cardOrderIds: [createdNewCard._id]
+    //         }
+    //       }
+    //       else {
+    //         return {
+    //           ...column,
+    //           cards: [...column.cards, createdNewCard],
+    //           cardOrderIds: [...column.cardOrderIds, createdNewCard._id]
+    //         }
+    //       }
+    //     }
+    //     return column
+    //   })
+
+    //   return {
+    //     ...prev,
+    //     columns: updatedColumns
+    //   }
+    // })
+    dispatch(updateCurrentActiveBoard({
+      ...board,
+      columns: board.columns.map(column => {
+        if (column._id === createdNewCard.columnId) {
+          // Remove placeholder card if any
+          if (column.cards.some(card => card.FE_PlaceholderCard)) {
+            return {
+              ...column,
+              cards: [createdNewCard],
+              cardOrderIds: [createdNewCard._id]
+            }
+          } else {
+            return {
+              ...column,
+              cards: [...column.cards, createdNewCard],
+              cardOrderIds: [...column.cardOrderIds, createdNewCard._id]
+            }
+          }
+        }
+        return column
+      })
+    }))
+    // ===================================================
 
     // Reset form
     toggleOpenNewCardForm()
@@ -82,7 +159,6 @@ function Column({ column, createNewCard, deleteColumnDetails }) {
   // Handle delete column and cards
   const confirmDeleteColumn = useConfirm()
   const handleDeleteColumn = async () => {
-
     const { confirmed } = await confirmDeleteColumn({
       title: 'Delete this column?',
       description: 'This action will permanently delete this column and all cards in it. Are you sure you want to proceed?',
@@ -95,14 +171,33 @@ function Column({ column, createNewCard, deleteColumnDetails }) {
     })
 
     if (confirmed) {
-      // console.log(column._id)
+      // This block handle delete column and cards inside
+      // ===================================================
+      // Handle delete column and cards inside
 
-      deleteColumnDetails(column._id)
+      // update state board
+      // setBoard(prevBoard => {
+      //   if (!prevBoard) return prevBoard
+      //   return {
+      //     ...prevBoard,
+      //     columns: prevBoard.columns.filter(col => col._id !== columnId),
+      //     columnOrderIds: prevBoard.columnOrderIds.filter(id => id !== columnId)
+      //   }
+      // })
+
+      dispatch(updateCurrentActiveBoard({
+        ...board,
+        columns: board.columns.filter(col => col._id !== column._id),
+        columnOrderIds: board.columnOrderIds.filter(id => id !== column._id)
+      }))
+
+      // call api to delete column
+      deleteColumnDetailsAPI(column._id).then(res => {
+        toast.success(res?.deleteResult)
+      })
     }
-
     // console.log(reason)
     //=> "confirm" | "cancel" | "natural" | "unmount"
-
   }
 
   return (
