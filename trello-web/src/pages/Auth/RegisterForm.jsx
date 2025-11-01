@@ -157,6 +157,7 @@ function RegisterForm() {
               variant="contained"
               sx={{ mt: 3, mb: 2, py: 1.5 }}
               disabled={isSubmitting}
+              className='interceptor-loading'
             >
               {isSubmitting ? 'Signing Up...' : 'Sign Up'}
             </Button>

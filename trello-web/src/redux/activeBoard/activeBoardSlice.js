@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import authorizedAxiosInstance from '~/utils/authorizeAxios'
 import { isEmpty } from 'lodash'
 import { API_ROOT } from '~/utils/constants'
-import { generatePlaceholderCard } from '~/utils/formatter'
+import { generatePlaceholderCard } from '~/utils/formatters'
 import { mapOrder } from '~/utils/sort'
 
 // initial state of slice
