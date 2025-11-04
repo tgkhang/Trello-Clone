@@ -47,7 +47,7 @@ export default [
       'linebreak-style': 'off',
       'no-unexpected-multiline': 'warn',
       'keyword-spacing': 'warn',
-      'comma-dangle': 'warn',
+      // 'comma-dangle': 'warn',
       'comma-spacing': 'warn',
       'arrow-spacing': 'warn'
     }
