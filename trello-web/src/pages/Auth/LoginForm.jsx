@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -14,32 +14,52 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import Avatar from '@mui/material/Avatar'
 import Zoom from '@mui/material/Zoom'
+import Alert from '@mui/material/Alert'
 import {
   EMAIL_RULE,
   PASSWORD_RULE,
   FIELD_REQUIRED_MESSAGE,
   PASSWORD_RULE_MESSAGE,
-  EMAIL_RULE_MESSAGE
+  EMAIL_RULE_MESSAGE,
 } from '~/utils/validators'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
+import { useDispatch } from 'react-redux'
+import { toast } from 'react-toastify'
+import { registerUserAPI } from '~/apis'
+import { loginUserAPI } from '~/redux/user/userSlice'
 
 function LoginForm() {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
       email: '',
-      password: ''
-    }
+      password: '',
+    },
   })
   const [showPassword, setShowPassword] = useState(false)
+  let [searchParams] = useSearchParams()
+  const registeredEmail = searchParams.get('registeredEmail')
+  const verifiedEmail = searchParams.get('verifiedEmail')
 
   const onSubmit = async (data) => {
-    // Handle login logic here
-    console.log('Login data:', data)
-    // Add your login API call here
+    // Login Logic here
+    const { email, password } = data
+    toast
+      .promise(dispatch(loginUserAPI({ email, password })), {
+        pending: 'Logging in...',
+      })
+      .then((response) => {
+        console.log(response)
+        // check error from response
+        // login success redirect to home
+        if (!response.error) navigate('/')
+      })
   }
 
   const handleClickShowPassword = () => {
@@ -55,7 +75,7 @@ function LoginForm() {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              mb: 3
+              mb: 3,
             }}
           >
             <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
@@ -67,6 +87,20 @@ function LoginForm() {
           </Box>
 
           <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+            {registeredEmail && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                Registration successful! A verification email has been sent to <strong>{registeredEmail}</strong>.
+                Please check your inbox to verify your account.
+              </Alert>
+            )}
+
+            {verifiedEmail && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                Your account has been verified successfully! You can now sign in with your email{' '}
+                <strong>{verifiedEmail}</strong>.
+              </Alert>
+            )}
+
             <TextField
               fullWidth
               label="Email Address"
@@ -78,8 +112,8 @@ function LoginForm() {
                 required: FIELD_REQUIRED_MESSAGE,
                 pattern: {
                   value: EMAIL_RULE,
-                  message: EMAIL_RULE_MESSAGE
-                }
+                  message: EMAIL_RULE_MESSAGE,
+                },
               })}
             />
             <FieldErrorAlert errors={errors} fieldName="email" />
@@ -94,22 +128,18 @@ function LoginForm() {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      aria-label="toggle password visibility"
-                      onClick={handleClickShowPassword}
-                      edge="end"
-                    >
+                    <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} edge="end">
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
-                )
+                ),
               }}
               {...register('password', {
                 required: FIELD_REQUIRED_MESSAGE,
                 pattern: {
                   value: PASSWORD_RULE,
-                  message: PASSWORD_RULE_MESSAGE
-                }
+                  message: PASSWORD_RULE_MESSAGE,
+                },
               })}
             />
             <FieldErrorAlert errors={errors} fieldName="password" />
@@ -120,7 +150,7 @@ function LoginForm() {
               variant="contained"
               sx={{ mt: 3, mb: 2, py: 1.5 }}
               disabled={isSubmitting}
-              className='interceptor-loading'
+              className="interceptor-loading"
             >
               {isSubmitting ? 'Signing In...' : 'Sign In'}
             </Button>
@@ -130,7 +160,11 @@ function LoginForm() {
                 Donnot have an account?{' '}
                 <Link
                   to="/register"
-                  style={{ textDecoration: 'none', color: 'inherit', fontWeight: 'bold' }}
+                  style={{
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    fontWeight: 'bold',
+                  }}
                 >
                   Sign Up
                 </Link>
@@ -140,7 +174,6 @@ function LoginForm() {
         </CardContent>
       </Card>
     </Zoom>
-
   )
 }
 

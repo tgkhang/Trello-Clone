@@ -7,8 +7,8 @@ import backgroundImage from '~/assets/background.jpg'
 function Auth() {
   const location = useLocation()
 
-  const isLogin = location.pathname === '/login'
-  const isRegister = location.pathname === '/register'
+  const isLogin = location.pathname === '/login' || location.pathname === '/login/'
+  const isRegister = location.pathname === '/register' || location.pathname === '/register/'
 
   return (
     <Box

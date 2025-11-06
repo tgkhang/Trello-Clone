@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -22,6 +22,8 @@ import {
   EMAIL_RULE_MESSAGE
 } from '~/utils/validators'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
+import { registerUserAPI } from '~/apis'
+import { toast } from 'react-toastify'
 
 function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -41,10 +43,14 @@ function RegisterForm() {
 
   const password = watch('password')
 
+  const navigate = useNavigate()
   const onSubmit = async (data) => {
-    // Handle registration logic here
-    //  console.log('Register data:', data)
-
+    const { email, password } = data
+    toast.promise(registerUserAPI({ email: email, password: password }), {
+      pending: 'Registering your account...',
+    }).then(user => {
+      navigate(`/login?registeredEmail=${user.email}`)
+    })
   }
 
   const handleClickShowPassword = () => {
