@@ -24,7 +24,7 @@ export const fetchBoardDetailsAPI = createAsyncThunk(
 export const activeBoardSlice = createSlice({
   name: 'activeBoard',
   initialState,
-  // reducer: handle synchronous data
+  // reducer: handle SYNCHRONOUS data
   // reducer of redux by default always need {} to wrap, even has only 1 line (offical doc) ? update ?
   reducers: {
     updateCurrentActiveBoard: (state, actions) => {
@@ -36,7 +36,7 @@ export const activeBoardSlice = createSlice({
       state.currentActiveBoard = board
     }
   },
-  // extraReducers: handle asynchronous data
+  // extraReducers: handle ASYNCHRONOUS data
   extraReducers: (builder) => {
     builder.addCase(fetchBoardDetailsAPI.fulfilled, // catch case for successful API call, dead case catch by axios
       (state, action) => {

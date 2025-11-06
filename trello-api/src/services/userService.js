@@ -4,6 +4,10 @@ import ApiError from '~/utils/ApiError'
 import bcryptjs from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
 import { pickUser } from '~/utils/formatters'
+import { WEBSITE_DOMAIN } from '~/utils/constants'
+import { BrevoEmailProvider } from '~/providers/BrevoEmailProvider'
+import { JwtProvider } from '~/providers/JwtProvider'
+import { env } from '~/config/environment'
 
 const createNew = async (reqBody) => {
   try {
@@ -30,6 +34,31 @@ const createNew = async (reqBody) => {
     const getNewUser = await userModel.findOneById(createdUser.insertedId)
 
     // send email verification
+    try {
+      const verificationLink = `${WEBSITE_DOMAIN}/account/verification?email=${getNewUser.email}&token=${getNewUser.verifyToken}`
+      const emailSubject = 'Please verify your email'
+      const textContent = `Here is your verification link: ${verificationLink}\n\nThank you for registering!`
+      const htmlContent = `
+        <h3>Here is your verification link:</h3>
+        <h3><a href="${verificationLink}">${verificationLink}</a></h3>
+        <h3>Thank you for registering!</h3>
+      `
+      // call provider to send email
+      await BrevoEmailProvider.sendEmail(
+        getNewUser.email,
+        emailSubject,
+        textContent,
+        htmlContent
+      )
+    } catch (emailError) {
+      // console.error('Failed to send verification email:', emailError.message)
+      // console.error('Full error details:', emailError.response?.data || emailError)
+      // Continue anyway - user is still created successfully
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        'Failed to send verification email'
+      )
+    }
 
     // return created user, exclude password and verifyToken
     return pickUser(getNewUser)
@@ -38,6 +67,100 @@ const createNew = async (reqBody) => {
   }
 }
 
+const verifyAccount = async (reqBody) => {
+  try {
+    const email = reqBody.email.toLowerCase().trim()
+    const token = reqBody.token.trim()
+
+    // Find user by email
+    const existingUser = await userModel.findOneByEmail(email)
+    if (!existingUser) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found with this email')
+    }
+
+    // Check if account is already verified
+    if (existingUser.isActive) {
+      throw new ApiError(StatusCodes.CONFLICT, 'Account is already verified')
+    }
+
+    // Check if verification token exists (might have been used/expired)
+    if (!existingUser.verifyToken) {
+      throw new ApiError(
+        StatusCodes.GONE,
+        'Verification token has already been used or expired'
+      )
+    }
+
+    // Verify token matches
+    if (existingUser.verifyToken !== token) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        'Invalid or incorrect verification token'
+      )
+    }
+
+    // Update user to active status and remove token
+    const updateData = {
+      isActive: true,
+      verifyToken: null,
+      updatedAt: Date.now(),
+    }
+
+    const updatedUser = await userModel.update(existingUser._id, updateData)
+    return pickUser(updatedUser)
+  } catch (error) {
+    throw error
+  }
+}
+
+const login = async (reqBody) => {
+  try {
+    const existingUser = await userModel.findOneByEmail(reqBody.email)
+
+    if (!existingUser) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found')
+    }
+    if (!existingUser.isActive) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Account not verified')
+    }
+
+    if (!bcryptjs.compareSync(reqBody.password, existingUser.password)) {
+      throw new ApiError(
+        StatusCodes.UNAUTHORIZED,
+        'Invalid credentials, your email or password is incorrect'
+      )
+    }
+    // create token information in token will include _id and email
+    const userInfo = {
+      _id: existingUser._id,
+      email: existingUser.email,
+    }
+
+    // create 2 type of token: access token and refresh token
+    const accessToken = await JwtProvider.generateToken(
+      userInfo,
+      env.ACCESS_JWT_SECRET_KEY,
+      env.ACCESS_JWT_EXPIRES_IN
+    )
+    const refreshToken = await JwtProvider.generateToken(
+      userInfo,
+      env.REFRESH_JWT_SECRET_KEY,
+      env.REFRESH_JWT_EXPIRES_IN
+    )
+
+    //return token and user info
+    return {
+      accessToken,
+      refreshToken,
+      ...pickUser(existingUser),
+    }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const userService = {
   createNew,
+  verifyAccount,
+  login,
 }

@@ -1,3 +1,5 @@
+import { env } from '~/config/environment'
+
 export const WHITELIST_DOMAINS = [
   'http://localhost:5173',
   'https://trello-clone-gamma-lime.vercel.app',
@@ -15,3 +17,8 @@ export const EMAIL_RULE_MESSAGE = 'Please enter a valid email address.'
 export const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
 export const PASSWORD_RULE_MESSAGE =
   'Password must be at least 8 characters long and include uppercase, lowercase letters, and a number.'
+
+export const WEBSITE_DOMAIN =
+  env.BUILD_MODE === 'production'
+    ? env.WEBSITE_DOMAIN_PRODUCTION
+    : env.WEBSITE_DOMAIN_DEVELOPMENT

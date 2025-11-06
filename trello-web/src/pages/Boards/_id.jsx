@@ -4,10 +4,11 @@ import BoardBar from './BoardBar/BoardBar'
 import AppBar from '~/components/AppBar/AppBar'
 // import { mockData } from '~/apis/mock-data'
 import { useEffect } from 'react'
-import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
-import Typography from '@mui/material/Typography'
-import { fetchBoardDetailsAPI, selectCurrentActiveBoard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
+import {
+  fetchBoardDetailsAPI,
+  selectCurrentActiveBoard,
+  updateCurrentActiveBoard,
+} from '~/redux/activeBoard/activeBoardSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 import {
@@ -15,12 +16,13 @@ import {
   updateColumnDetailsAPI,
   moveCardToDifferentColumnAPI,
 } from '~/apis'
-
+import LoadingSpinner from '~/components/Loading/LoadingSpinner'
 
 function Board() {
-  const dispatch = useDispatch()
   // const [board, setBoard] = useState(null)
+  const dispatch = useDispatch()
   const board = useSelector(selectCurrentActiveBoard)
+
   const { boardId } = useParams()
 
   useEffect(() => {
@@ -30,7 +32,7 @@ function Board() {
 
   // Calling api to move column
   const moveColumn = (dndOrderedColumns) => {
-    const dndOrderedColumnsIds = dndOrderedColumns.map(col => col._id)
+    const dndOrderedColumnsIds = dndOrderedColumns.map((col) => col._id)
 
     // console.log(dndOrderedColumns)
     // console.log({ dndOrderedColumnsIds })
@@ -44,11 +46,13 @@ function Board() {
     //   }
     // })
 
-    dispatch(updateCurrentActiveBoard({
-      ...board,
-      columns: [...dndOrderedColumns],
-      columnOrderIds: [...dndOrderedColumnsIds]
-    }))
+    dispatch(
+      updateCurrentActiveBoard({
+        ...board,
+        columns: [...dndOrderedColumns],
+        columnOrderIds: [...dndOrderedColumnsIds],
+      })
+    )
 
     // Call api to update column order in board
     updateBoardDetailsAPI(board._id, { columnOrderIds: dndOrderedColumnsIds })
@@ -56,7 +60,11 @@ function Board() {
 
   // Calling api to move card
   // when moving card in the same column, just need to call api to update cardOrderIds in that column
-  const moveCardInTheSameColumn = (dndOrderedCards, dndOrderedCardIds, columnId) => {
+  const moveCardInTheSameColumn = (
+    dndOrderedCards,
+    dndOrderedCardIds,
+    columnId
+  ) => {
     // update state board
     // setBoard(prev => {
     //   if (!prev) return prev
@@ -76,19 +84,21 @@ function Board() {
     //     columns: updatedColumns
     //   }
     // })
-    dispatch(updateCurrentActiveBoard({
-      ...board,
-      columns: board.columns.map(column => {
-        if (column._id === columnId) {
-          return {
-            ...column,
-            cards: dndOrderedCards,
-            cardOrderIds: dndOrderedCardIds
+    dispatch(
+      updateCurrentActiveBoard({
+        ...board,
+        columns: board.columns.map((column) => {
+          if (column._id === columnId) {
+            return {
+              ...column,
+              cards: dndOrderedCards,
+              cardOrderIds: dndOrderedCardIds,
+            }
           }
-        }
-        return column
+          return column
+        }),
       })
-    }))
+    )
 
     // Call api to update card order in that column
     updateColumnDetailsAPI(columnId, { cardOrderIds: dndOrderedCardIds })
@@ -100,9 +110,13 @@ function Board() {
   // 2. update cardOrderIds in destination column
   // 3. update columnId in moved card
   // distinct API call
-  const moveCardToDifferentColumn = (currentCardId, prevColumnId, nextColumnId, dndOrderedColumns) => {
-
-    const dndOrderedColumnsIds = dndOrderedColumns.map(col => col._id)
+  const moveCardToDifferentColumn = (
+    currentCardId,
+    prevColumnId,
+    nextColumnId,
+    dndOrderedColumns
+  ) => {
+    const dndOrderedColumnsIds = dndOrderedColumns.map((col) => col._id)
     // setBoard(prevBoard => {
     //   if (!prevBoard) return prevBoard
 
@@ -112,15 +126,22 @@ function Board() {
     //     columnOrderIds: [...dndOrderedColumnsIds]
     //   }
     // })
-    dispatch(updateCurrentActiveBoard({
-      ...board,
-      columns: [...dndOrderedColumns],
-      columnOrderIds: [...dndOrderedColumnsIds]
-    }))
+    dispatch(
+      updateCurrentActiveBoard({
+        ...board,
+        columns: [...dndOrderedColumns],
+        columnOrderIds: [...dndOrderedColumnsIds],
+      })
+    )
 
     // Hanle placeholder card in empty column
-    let prevCardOrderIds = dndOrderedColumns.find(col => col._id === prevColumnId)?.cardOrderIds
-    if (prevCardOrderIds.length === 1 && prevCardOrderIds[0].includes('-placeholder-card'))
+    let prevCardOrderIds = dndOrderedColumns.find(
+      (col) => col._id === prevColumnId
+    )?.cardOrderIds
+    if (
+      prevCardOrderIds.length === 1 &&
+      prevCardOrderIds[0].includes('-placeholder-card')
+    )
       prevCardOrderIds = []
 
     // call api
@@ -129,25 +150,14 @@ function Board() {
       prevColumnId,
       prevCardOrderIds,
       nextColumnId,
-      nextCardOrderIds: dndOrderedColumns.find(col => col._id === nextColumnId).cardOrderIds
+      nextCardOrderIds: dndOrderedColumns.find(
+        (col) => col._id === nextColumnId
+      ).cardOrderIds,
     })
   }
 
   if (!board) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          gap: 2,
-          width: '100vw'
-        }}>
-        <CircularProgress />
-        <Typography>Loading board...</Typography>
-      </Box>
-    )
+    return <LoadingSpinner caption='Loading Board...' />
   }
 
   return (
@@ -164,7 +174,7 @@ function Board() {
         moveCardInTheSameColumn={moveCardInTheSameColumn}
         moveCardToDifferentColumn={moveCardToDifferentColumn}
       />
-    </Container >
+    </Container>
   )
 }
 

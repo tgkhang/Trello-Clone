@@ -1,5 +1,6 @@
 import { pick } from 'lodash'
 
+// ex : "My New Board!" => "my-new-board"
 export const slugify = (val) => {
   if (!val) return ''
   return String(val)
