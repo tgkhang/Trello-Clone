@@ -25,7 +25,6 @@ import {
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import { useDispatch } from 'react-redux'
 import { toast } from 'react-toastify'
-import { registerUserAPI } from '~/apis'
 import { loginUserAPI } from '~/redux/user/userSlice'
 
 function LoginForm() {
@@ -55,7 +54,7 @@ function LoginForm() {
         pending: 'Logging in...',
       })
       .then((response) => {
-        console.log(response)
+        // console.log(response)
         // check error from response
         // login success redirect to home
         if (!response.error) navigate('/')
