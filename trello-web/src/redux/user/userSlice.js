@@ -1,24 +1,30 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { toast } from 'react-toastify'
 import authorizedAxiosInstance from '~/utils/authorizeAxios'
 import { API_ROOT } from '~/utils/constants'
 
 // initial state of slice
 const initialState = {
-  current: null,
+  currentUser: null,
 }
 
 // Asynchronous actions, Update data to redux using middleware createAsyncThunk with extraReducers
 export const loginUserAPI = createAsyncThunk(
   'activeBoard/loginUserAPI', // name of action
   async (data) => {
-    const response = await authorizedAxiosInstance.post(
-      `${API_ROOT}/v1/users/login`,
-      data
-    )
+    const response = await authorizedAxiosInstance.post(`${API_ROOT}/v1/users/login`, data)
     // axios automatically parses the JSON response, stored in response.data
     return response.data
   }
 )
+
+export const logoutUserAPI = createAsyncThunk('user/logoutUserAPI', async (showSuccessMessage) => {
+  const response = await authorizedAxiosInstance.delete(`${API_ROOT}/v1/users/logout`)
+  if (showSuccessMessage) {
+    toast.success('Logged out successfully')
+  }
+  return response.data
+})
 
 // create slice in redux store
 export const userSlice = createSlice({
@@ -32,9 +38,12 @@ export const userSlice = createSlice({
     builder.addCase(
       loginUserAPI.fulfilled, // catch case for successful API call, dead case catch by axios
       (state, action) => {
-        state.current = action.payload
+        state.currentUser = action.payload
       }
     )
+    builder.addCase(logoutUserAPI.fulfilled, (state) => {
+      state.currentUser = null
+    })
   },
 })
 
@@ -43,7 +52,7 @@ export const userSlice = createSlice({
 
 // Selector : a way for child component to get specific data from redux store to use
 export const selectCurrentUser = (state) => {
-  return state.user.current
+  return state.user.currentUser
 }
 
 export const userReducer = userSlice.reducer

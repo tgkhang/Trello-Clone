@@ -44,20 +44,12 @@ const createNew = async (reqBody) => {
         <h3>Thank you for registering!</h3>
       `
       // call provider to send email
-      await BrevoEmailProvider.sendEmail(
-        getNewUser.email,
-        emailSubject,
-        textContent,
-        htmlContent
-      )
+      await BrevoEmailProvider.sendEmail(getNewUser.email, emailSubject, textContent, htmlContent)
     } catch (emailError) {
       // console.error('Failed to send verification email:', emailError.message)
       // console.error('Full error details:', emailError.response?.data || emailError)
       // Continue anyway - user is still created successfully
-      throw new ApiError(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        'Failed to send verification email'
-      )
+      throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to send verification email')
     }
 
     // return created user, exclude password and verifyToken
@@ -85,18 +77,12 @@ const verifyAccount = async (reqBody) => {
 
     // Check if verification token exists (might have been used/expired)
     if (!existingUser.verifyToken) {
-      throw new ApiError(
-        StatusCodes.GONE,
-        'Verification token has already been used or expired'
-      )
+      throw new ApiError(StatusCodes.GONE, 'Verification token has already been used or expired')
     }
 
     // Verify token matches
     if (existingUser.verifyToken !== token) {
-      throw new ApiError(
-        StatusCodes.UNAUTHORIZED,
-        'Invalid or incorrect verification token'
-      )
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid or incorrect verification token')
     }
 
     // Update user to active status and remove token
@@ -125,10 +111,7 @@ const login = async (reqBody) => {
     }
 
     if (!bcryptjs.compareSync(reqBody.password, existingUser.password)) {
-      throw new ApiError(
-        StatusCodes.UNAUTHORIZED,
-        'Invalid credentials, your email or password is incorrect'
-      )
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid credentials, your email or password is incorrect')
     }
     // create token information in token will include _id and email
     const userInfo = {
@@ -142,6 +125,7 @@ const login = async (reqBody) => {
       env.ACCESS_JWT_SECRET_KEY,
       env.ACCESS_JWT_EXPIRES_IN
     )
+
     const refreshToken = await JwtProvider.generateToken(
       userInfo,
       env.REFRESH_JWT_SECRET_KEY,
@@ -159,8 +143,29 @@ const login = async (reqBody) => {
   }
 }
 
+const refreshToken = async (clientRefreshToken) => {
+  try {
+    const refreshTokenDecoded = await JwtProvider.verifyToken(clientRefreshToken, env.REFRESH_JWT_SECRET_KEY)
+
+    const userInfo = {
+      _id: refreshTokenDecoded._id,
+      email: refreshTokenDecoded.email,
+    }
+
+    const newAccessToken = await JwtProvider.generateToken(
+      userInfo,
+      env.ACCESS_JWT_SECRET_KEY,
+      env.ACCESS_JWT_EXPIRES_IN
+    )
+    return { accessToken: newAccessToken }
+  } catch (error) {
+    throw error
+  }
+}
+
 export const userService = {
   createNew,
   verifyAccount,
   login,
+  refreshToken,
 }

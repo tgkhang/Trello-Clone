@@ -13,24 +13,34 @@ import { store } from '~/redux/store.js'
 import { Provider } from 'react-redux'
 // react router dom with browserRouter
 import { BrowserRouter } from 'react-router-dom'
+import { PersistGate } from 'redux-persist/integration/react'
+import { persistStore } from 'redux-persist'
+const persistor = persistStore(store)
 
+// inject redux store into authorizeAxios
+import { injectStore } from '~/utils/authorizeAxios.js'
+injectStore(store)
 
 createRoot(document.getElementById('root')).render(
-  <BrowserRouter basename='/'>
+  <BrowserRouter basename="/">
     <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        <ConfirmProvider defaultOptions={{
-          dialogActionsProps: { maxWidth: 'xs' },
-          confirmationButtonProps: { variant: 'outlined' },
-          cancellationButtonProps: { color: 'inherit' },
-          buttonOrder: ['confirm', 'cancel']
-        }}>
-          <CssBaseline enableColorScheme />
-          <App />
-          {/* Init ToastContainer */}
-          <ToastContainer position='bottom-right' theme='colored' />
-        </ConfirmProvider>
-      </ThemeProvider>
+      <PersistGate loading={null} persistor={persistor}>
+        <ThemeProvider theme={theme}>
+          <ConfirmProvider
+            defaultOptions={{
+              dialogActionsProps: { maxWidth: 'xs' },
+              confirmationButtonProps: { variant: 'outlined' },
+              cancellationButtonProps: { color: 'inherit' },
+              buttonOrder: ['confirm', 'cancel'],
+            }}
+          >
+            <CssBaseline enableColorScheme />
+            <App />
+            {/* Init ToastContainer */}
+            <ToastContainer position="bottom-right" theme="colored" />
+          </ConfirmProvider>
+        </ThemeProvider>
+      </PersistGate>
     </Provider>
   </BrowserRouter>
 )
