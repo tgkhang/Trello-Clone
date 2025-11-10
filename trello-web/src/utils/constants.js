@@ -12,4 +12,7 @@ else if (process.env.BUILD_MODE === 'production') {
 }
 // console.log('API_ROOT:', apiRoot)
 
+
+export const FIELD_REQUIRED_MESSAGE = 'This field is required.'
+
 export const API_ROOT = apiRoot

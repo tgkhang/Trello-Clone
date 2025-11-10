@@ -120,11 +120,7 @@ const login = async (reqBody) => {
     }
 
     // create 2 type of token: access token and refresh token
-    const accessToken = await JwtProvider.generateToken(
-      userInfo,
-      env.ACCESS_JWT_SECRET_KEY,
-      env.ACCESS_JWT_EXPIRES_IN
-    )
+    const accessToken = await JwtProvider.generateToken(userInfo, env.ACCESS_JWT_SECRET_KEY, env.ACCESS_JWT_EXPIRES_IN)
 
     const refreshToken = await JwtProvider.generateToken(
       userInfo,
@@ -163,9 +159,42 @@ const refreshToken = async (clientRefreshToken) => {
   }
 }
 
+const update = async (userId, reqBody) => {
+  try {
+    const existUser = await userModel.findOneById(userId)
+    if (!existUser) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'User not found')
+    }
+    if (!existUser.isActive) {
+      throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Account is not active')
+    }
+
+    let updatedUser = {}
+    // case1 change password
+    if (reqBody.currentPassword && reqBody.newPassword) {
+      // verify current password
+      if (!bcryptjs.compareSync(reqBody.currentPassword, existUser.password)) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Current password is incorrect')
+      }
+      // update to new password
+      updatedUser = await userModel.update(existUser._id, {
+        password: bcryptjs.hashSync(reqBody.newPassword, 10),
+      })
+    } else {
+      // udpate general info
+      updatedUser = await userModel.update(existUser._id, reqBody)
+    }
+
+    return pickUser(updatedUser)
+  } catch (error) {
+    throw error
+  }
+}
+
 export const userService = {
   createNew,
   verifyAccount,
   login,
   refreshToken,
+  update,
 }

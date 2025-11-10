@@ -66,10 +66,22 @@ const logout = async (req, res, next) => {
   }
 }
 
+const update = async (req, res, next) => {
+  try {
+    // decoded in authMiddleware
+    const userId = req.jwtDecoded._id
+    const updatedUser = await userService.update(userId, req.body)
+    res.status(StatusCodes.OK).json(updatedUser)
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const userController = {
   createNew,
   verifyAccount,
   login,
   refreshToken,
   logout,
+  update,
 }
