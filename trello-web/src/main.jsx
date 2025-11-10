@@ -2,6 +2,7 @@
 import { createRoot } from 'react-dom/client'
 import '~/index.css'
 import App from '~/App.jsx'
+import GlobalStyles from '@mui/material/GlobalStyles'
 import CssBaseline from '@mui/material/CssBaseline'
 // import { Experimental_CssVarsProvider as CssVarsProvider } from '@mui/material/styles'
 import { ThemeProvider } from '@mui/material/styles'
@@ -34,6 +35,7 @@ createRoot(document.getElementById('root')).render(
               buttonOrder: ['confirm', 'cancel'],
             }}
           >
+            <GlobalStyles styles={{ a: { textDecoration: 'none' } }} />
             <CssBaseline enableColorScheme />
             <App />
             {/* Init ToastContainer */}
