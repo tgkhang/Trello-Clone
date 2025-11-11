@@ -56,14 +56,9 @@ const update = async (req, res, next) => {
     newPassword: Joi.string()
       .pattern(PASSWORD_RULE)
       .message('new_password: ' + PASSWORD_RULE_MESSAGE),
-  }).min(1)
+  })
 
   try {
-    // Validate that at least one field is provided
-    if (!req.body || Object.keys(req.body).length === 0) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Request body cannot be empty. Please provide at least one field to update.')
-    }
-
     await correctCondition.validateAsync(req.body, { abortEarly: false })
     next()
   } catch (error) {

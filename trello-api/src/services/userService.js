@@ -8,6 +8,7 @@ import { WEBSITE_DOMAIN } from '~/utils/constants'
 import { BrevoEmailProvider } from '~/providers/BrevoEmailProvider'
 import { JwtProvider } from '~/providers/JwtProvider'
 import { env } from '~/config/environment'
+import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
 
 const createNew = async (reqBody) => {
   try {
@@ -159,7 +160,7 @@ const refreshToken = async (clientRefreshToken) => {
   }
 }
 
-const update = async (userId, reqBody) => {
+const update = async (userId, reqBody, userAvatarFile) => {
   try {
     const existUser = await userModel.findOneById(userId)
     if (!existUser) {
@@ -179,6 +180,13 @@ const update = async (userId, reqBody) => {
       // update to new password
       updatedUser = await userModel.update(existUser._id, {
         password: bcryptjs.hashSync(reqBody.newPassword, 10),
+      })
+    } else if (userAvatarFile) {
+      // case upload avatar
+      const uploadResult = await CloudinaryProvider.streamUpload(userAvatarFile.buffer, 'users')
+      // save url
+      updatedUser = await userModel.update(existUser._id, {
+        avatar: uploadResult.secure_url,
       })
     } else {
       // udpate general info
