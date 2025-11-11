@@ -70,7 +70,9 @@ const update = async (req, res, next) => {
   try {
     // decoded in authMiddleware
     const userId = req.jwtDecoded._id
-    const updatedUser = await userService.update(userId, req.body)
+    const userAvatarFile = req.file
+    // console.log('userAvatarFile:', userAvatarFile)
+    const updatedUser = await userService.update(userId, req.body, userAvatarFile)
     res.status(StatusCodes.OK).json(updatedUser)
   } catch (error) {
     next(error)

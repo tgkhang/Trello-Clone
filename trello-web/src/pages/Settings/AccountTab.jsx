@@ -18,6 +18,7 @@ import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'
 import { FIELD_REQUIRED_MESSAGE } from '~/utils/constants'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 
+// Visually hidden input for file upload
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
   clipPath: 'inset(50%)',
@@ -76,10 +77,25 @@ function AccountTab() {
 
     let reqData = new FormData()
     reqData.append('avatar', e.target?.files[0])
-    console.log('Upload avatar req data:', reqData)
-    for (const value of reqData.values()) {
-      console.log(value)
-    }
+
+    // console log form data contents
+    // console.log('Upload avatar req data:', reqData)
+    // for (const value of reqData.values()) {
+    //   console.log(value)
+    // }
+
+    // call api
+    toast
+      .promise(dispatch(updateUserAPI(reqData)), {
+        pending: 'Updating user info...',
+      })
+      .then((res) => {
+        if (!res.error) {
+          toast.success('User info updated successfully')
+        }
+
+        e.target.value = null // reset file input
+      })
   }
 
   return (
