@@ -17,6 +17,9 @@ import HomeIcon from '@mui/icons-material/Home'
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt'
 import Grid from '@mui/material/Grid'
 import SidebarCreateBoardModal from './create'
+import { fetchBoardsAPI } from '~/apis'
+import LoadingSpinner from '~/components/Loading/LoadingSpinner'
+import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '~/utils/constants'
 
 const SidebarItem = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -45,25 +48,33 @@ function Boards() {
   const [boards, setBoards] = useState([])
   const location = useLocation()
   const query = new URLSearchParams(location.search)
-  const page = parseInt(query.get('page')) || 1
+  const page = parseInt(query.get('page'), 10) || 1
+  const [totalBoards, setTotalBoards] = useState(null)
 
   useEffect(() => {
-    // TODO: Fetch boards from API
-    // For now, using mock data
-    const mockBoards = [
-      { _id: '1', title: 'Project Board', description: 'Main project tracking board' },
-      { _id: '2', title: 'Marketing', description: 'Marketing campaigns and content' },
-      { _id: '3', title: 'Development', description: 'Software development tasks' },
-    ]
-    setBoards(mockBoards)
-  }, [page])
+    fetchBoardsAPI(location.search).then((res) => {
+      setBoards(res.boards || [])
+      setTotalBoards(res.totalBoards || 0)
+    })
+  }, [location.search])
+
+  if (!boards) {
+    return <LoadingSpinner caption="Loading board..." />
+  }
 
   return (
     <Container disableGutters maxWidth={false}>
       <AppBar />
       <Box sx={{ paddingX: 2, my: 4 }}>
-        <Grid container spacing={2}>
-          <Grid xs={12} sm={3}>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          {/* Fixed width sidebar */}
+          <Box
+            sx={{
+              width: { xs: '100%', sm: '250px' },
+              flexShrink: 0,
+              display: { xs: 'none', sm: 'block' },
+            }}
+          >
             <Stack direction="column" spacing={1}>
               <SidebarItem className="active">
                 <SpaceDashboardIcon fontSize="small" />
@@ -82,9 +93,10 @@ function Boards() {
             <Stack direction="column" spacing={1}>
               <SidebarCreateBoardModal />
             </Stack>
-          </Grid>
+          </Box>
 
-          <Grid xs={12} sm={9}>
+          {/* Main content area with flex grow */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
               Your boards:
             </Typography>
@@ -100,23 +112,29 @@ function Boards() {
                 boards.map((b) => (
                   <Grid xs={12} sm={6} md={4} key={b._id}>
                     <Card sx={{ width: '290px', height: '250px', display: 'flex', flexDirection: 'column' }}>
-                      {/* Y tưởng mở rộng về sau làm ảnh Cover cho board nhé */}
-                      {/* <CardMedia component="img" height="100" image="https://picsum.photos/100" /> */}
+                      {/* <CardMedia component="img" height="140" image={b.coverImage} alt={b.title} /> */}
                       <Box sx={{ height: '100px', backgroundColor: randomColor(), flexShrink: 0 }}></Box>
-
-                      <CardContent sx={{ p: 2, '&:last-child': { p: 2 }, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <CardContent
+                        sx={{
+                          p: 2,
+                          '&:last-child': { p: 2 },
+                          flex: 1,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                        }}
+                      >
                         <Box>
                           <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 600 }}>
-                            {b.title}
+                            {b?.title}
                           </Typography>
                           <Typography
                             variant="body2"
                             color="text.secondary"
                             sx={{
                               overflow: 'hidden',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
+                              whiteSpace: 'nowrap',
+                              textOverflow: 'ellipsis',
                             }}
                           >
                             {b.description}
@@ -126,25 +144,15 @@ function Boards() {
                           component={Link}
                           to={`/boards/${b._id}`}
                           sx={{
-                            mt: 2,
-                            mb: 2,
-                            pt: 2,
-                            pb: 0.5,
+                            mt: 1,
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'flex-end',
-                            gap: 0.5,
+                            alignContent: 'flex-end',
                             color: 'primary.main',
-                            fontWeight: 500,
-                            borderTop: '1px solid',
-                            borderColor: 'divider',
-                            textDecoration: 'none',
-                            '&:hover': {
-                              color: 'primary.light',
-                            },
+                            '&:hover': { color: 'primary.light' },
                           }}
                         >
-                          Go to board <ArrowRightAltIcon fontSize="small" sx={{ ml: 0.5 }} />
+                          Go to board <ArrowRightAltIcon fontSize="small" />
                         </Box>
                       </CardContent>
                     </Card>
@@ -152,27 +160,27 @@ function Boards() {
                 ))}
             </Grid>
 
-            {boards && boards.length > 0 && (
+            {totalBoards > 0 && (
               <Box sx={{ my: 3, pr: 5, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                 <Pagination
                   size="large"
                   color="secondary"
                   showFirstButton
                   showLastButton
-                  count={Math.ceil(boards.length / 10)}
+                  count={Math.ceil(totalBoards / DEFAULT_ITEMS_PER_PAGE)}
                   page={page}
                   renderItem={(item) => (
                     <PaginationItem
                       component={Link}
-                      to={`/boards${item.page === 1 ? '' : `?page=${item.page}`}`}
+                      to={`/boards${item.page === DEFAULT_PAGE ? '' : `?page=${item.page}`}`}
                       {...item}
                     />
                   )}
                 />
               </Box>
             )}
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
     </Container>
   )

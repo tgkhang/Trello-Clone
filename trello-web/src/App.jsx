@@ -23,7 +23,7 @@ function App() {
         path="/"
         element={
           <Navigate
-            to="/boards/690226e2f7a61739bcbae00d"
+            to="/boards"
             replace={true} // prevent adding a new entry in the history stack
           />
         }
