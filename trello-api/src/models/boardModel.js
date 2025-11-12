@@ -1,4 +1,3 @@
-
 import Joi from 'joi'
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
@@ -6,6 +5,7 @@ import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { BOARD_TYPES } from '~/utils/constants'
 import { columnModel } from '~/models/columnModel'
 import { cardModel } from '~/models/cardModel'
+import { pagingSkipValue } from '~/utils/algorithms'
 
 // Define Collection name and schema
 const BOARD_COLLECTION_NAME = 'boards'
@@ -16,13 +16,14 @@ const BOARD_COLLECTION_SCHEMA = Joi.object({
   description: Joi.string().required().min(3).max(256).trim().strict(),
   type: Joi.string().valid(BOARD_TYPES.PUBLIC, BOARD_TYPES.PRIVATE).required(),
 
-  columnOrderIds: Joi.array().items(
-    Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
-  ).default([]),
+  columnOrderIds: Joi.array().items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)).default([]),
+
+  ownerIds: Joi.array().items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)).default([]),
+  memberIds: Joi.array().items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)).default([]),
 
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null),
-  _destroy: Joi.boolean().default(false)
+  _destroy: Joi.boolean().default(false),
 })
 
 // fields that cannot be updated
@@ -40,80 +41,99 @@ const createNew = async (data) => {
     const createdBoard = await GET_DB().collection(BOARD_COLLECTION_NAME).insertOne(validData)
     return createdBoard
     // return await GET_DB().collection(BOARD_COLLECTION_NAME).insertOne(data)
-  } catch (error) { throw new Error(error) }
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 const findOneById = async (boardId) => {
   try {
-    return await GET_DB().collection(BOARD_COLLECTION_NAME).findOne({ _id: new ObjectId(boardId) })
-  } catch (error) { throw new Error(error) }
+    return await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOne({ _id: new ObjectId(boardId) })
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 const getDetails = async (boardId) => {
   try {
     // return await GET_DB().collection(BOARD_COLLECTION_NAME).findOne({ _id: new ObjectId(boardId) })
-    const result = await GET_DB().collection(BOARD_COLLECTION_NAME).aggregate([
-      {
-        $match: {
-          _id: new ObjectId(boardId),
-          _destroy: false
-        }
-      },
-      // find all columns belong to this board
-      {
-        $lookup: {
-          from: columnModel.COLUMN_COLLECTION_NAME,
-          localField: '_id', // attribute of BOARD collection
-          foreignField: 'boardId', // attribute of COLUMN collection
-          as: 'columns' // name of the new array
-        }
-      },
-      {
-        $lookup: {
-          from: cardModel.CARD_COLLECTION_NAME,
-          localField: '_id', // attribute of BOARD collection
-          foreignField: 'boardId', // attribute of CARD collection
-          as: 'cards' // name of the new array
-        }
-      }
-    ]).toArray()
+    const result = await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .aggregate([
+        {
+          $match: {
+            _id: new ObjectId(boardId),
+            _destroy: false,
+          },
+        },
+        // find all columns belong to this board
+        {
+          $lookup: {
+            from: columnModel.COLUMN_COLLECTION_NAME,
+            localField: '_id', // attribute of BOARD collection
+            foreignField: 'boardId', // attribute of COLUMN collection
+            as: 'columns', // name of the new array
+          },
+        },
+        {
+          $lookup: {
+            from: cardModel.CARD_COLLECTION_NAME,
+            localField: '_id', // attribute of BOARD collection
+            foreignField: 'boardId', // attribute of CARD collection
+            as: 'cards', // name of the new array
+          },
+        },
+      ])
+      .toArray()
     return result[0] || null // only one board is expected
-  } catch (error) { throw new Error(error) }
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 // push columnId to the end of columnOrderIds array of a board
 const pushColumnOrderIds = async (column) => {
   try {
-    const result = await GET_DB().collection(BOARD_COLLECTION_NAME).findOneAndUpdate(
-      {
-        _id: new ObjectId(column.boardId)
-      },
-      {
-        $push: { columnOrderIds: new ObjectId(column._id) }
-      },
-      {
-        returnDocument: 'after'
-      }
-    )
+    const result = await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        {
+          _id: new ObjectId(column.boardId),
+        },
+        {
+          $push: { columnOrderIds: new ObjectId(column._id) },
+        },
+        {
+          returnDocument: 'after',
+        }
+      )
     return result
-  } catch (error) { throw new Error(error) }
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 const pullColumnOrderIds = async (column) => {
   try {
-    const result = await GET_DB().collection(BOARD_COLLECTION_NAME).findOneAndUpdate(
-      { _id: new ObjectId(column.boardId) },
-      { $pull: { columnOrderIds: new ObjectId(column._id) } },
-      { returnDocument: 'after' }
-    )
+    const result = await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(column.boardId) },
+        { $pull: { columnOrderIds: new ObjectId(column._id) } },
+        { returnDocument: 'after' }
+      )
     return result
-  } catch (error) { throw new Error(error) }
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 const update = async (boardId, updateData) => {
   try {
     // Remove invalid fields from updateData
-    Object.keys(updateData).forEach(key => {
+    Object.keys(updateData).forEach((key) => {
       if (INVALID_UPDATE_FIELDS.includes(key)) {
         delete updateData[key]
       }
@@ -121,16 +141,60 @@ const update = async (boardId, updateData) => {
 
     // Object Id conversion if columnId is in updateData
     if (updateData.columnOrderIds) {
-      updateData.columnOrderIds = updateData.columnOrderIds.map(_id => new ObjectId(_id))
+      updateData.columnOrderIds = updateData.columnOrderIds.map((_id) => new ObjectId(_id))
     }
 
-    const result = await GET_DB().collection(BOARD_COLLECTION_NAME).findOneAndUpdate(
-      { _id: new ObjectId(boardId) },
-      { $set: updateData },
-      { returnDocument: 'after' }
-    )
+    const result = await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .findOneAndUpdate({ _id: new ObjectId(boardId) }, { $set: updateData }, { returnDocument: 'after' })
     return result
-  } catch (error) { throw new Error(error) }
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+const getBoards = async (userId, page, itemsPerPage) => {
+  try {
+    const queryConditions = [
+      // condition 1: board is not deleted
+      { _destroy: false },
+      // condition 2: user is member of the board or owner of the board
+      { $or: [{ ownerIds: { $all: [new ObjectId(userId)] } }, { memberIds: new ObjectId(userId) }] },
+    ]
+
+    const query = await GET_DB()
+      .collection(BOARD_COLLECTION_NAME)
+      .aggregate(
+        [
+          { $match: { $and: queryConditions } },
+          { $sort: { createdAt: -1 } },
+          // { $sort: { title: -1, createdAt: -1 } }, // sort by title descending
+          // $facet to apply multiple stream in query
+          {
+            $facet: {
+              // stream 1: query boards
+              queryBoards: [
+                { $skip: pagingSkipValue(page, itemsPerPage) },
+                // $limit to limit number of returned boards
+                { $limit: itemsPerPage },
+              ],
+              // stream 2: query total count board in db store in totalBoards field
+              queryTotalBoards: [{ $count: 'totalBoards' }],
+            },
+          },
+        ],
+        { collation: { locale: 'en', strength: 2 } } // make sure sorting is case insensitive)
+      )
+      .toArray()
+
+    const res = query[0]
+    return {
+      boards: res.queryBoards || [],
+      totalBoards: res.queryTotalBoards[0]?.totalBoards || 0,
+    }
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 export const boardModel = {
@@ -141,5 +205,6 @@ export const boardModel = {
   getDetails,
   pushColumnOrderIds,
   update,
-  pullColumnOrderIds
+  pullColumnOrderIds,
+  getBoards,
 }

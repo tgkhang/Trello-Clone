@@ -1,4 +1,3 @@
-
 import { boardModel } from '~/models/boardModel'
 import ApiError from '~/utils/ApiError'
 import { slugify } from '~/utils/formatters'
@@ -6,12 +5,13 @@ import { StatusCodes } from 'http-status-codes'
 import { cloneDeep } from 'lodash'
 import { columnModel } from '~/models/columnModel'
 import { cardModel } from '~/models/cardModel'
+import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '~/utils/constants'
 
 const createNew = async (reqBody) => {
   try {
     const newBoard = {
       ...reqBody,
-      slug: slugify(reqBody.title)
+      slug: slugify(reqBody.title),
     }
 
     // Call model to create board in DB
@@ -41,9 +41,9 @@ const getDetails = async (boardId) => {
 
     // new board do not affect the old board
     const resBoard = cloneDeep(board)
-    resBoard.columns.forEach(column => {
+    resBoard.columns.forEach((column) => {
       // using toString() of javascript
-      column.cards = resBoard.cards.filter(card => card.columnId.toString() === column._id.toString())
+      column.cards = resBoard.cards.filter((card) => card.columnId.toString() === column._id.toString())
 
       // mongodb method support equals
       // column.cards= resBoard.cards.filter(card => card.columnId.equals(column._id)
@@ -60,7 +60,7 @@ const update = async (boardId, reqBody) => {
   try {
     const updateData = {
       ...reqBody,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     }
     const updatedBoard = await boardModel.update(boardId, updateData)
     return updatedBoard
@@ -82,19 +82,31 @@ const moveCardToDifferentColumn = async (reqBody) => {
     // 1. update cardOrderIds in source column
     await columnModel.update(reqBody.prevColumnId, {
       cardOrderIds: reqBody.prevCardOrderIds,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     })
     // 2. update cardOrderIds in destination column
     await columnModel.update(reqBody.nextColumnId, {
       cardOrderIds: reqBody.nextCardOrderIds,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     })
     // 3. update columnId in moved card
     await cardModel.update(reqBody.currentCardId, {
-      columnId: reqBody.nextColumnId
+      columnId: reqBody.nextColumnId,
     })
 
     return { updateResult: 'Successfully!' }
+  } catch (error) {
+    throw error
+  }
+}
+
+const getBoards = async (userId, page, itemsPerPage) => {
+  try {
+    if (!page) page = DEFAULT_PAGE
+    if (!itemsPerPage) itemsPerPage = DEFAULT_ITEMS_PER_PAGE
+    // 2 number are take from query params so they are string need to convert to number
+    const boards = await boardModel.getBoards(userId, parseInt(page, 10), parseInt(itemsPerPage, 10))
+    return boards
   } catch (error) {
     throw error
   }
@@ -104,5 +116,6 @@ export const boardService = {
   createNew,
   getDetails,
   update,
-  moveCardToDifferentColumn
+  moveCardToDifferentColumn,
+  getBoards,
 }
