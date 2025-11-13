@@ -1,4 +1,3 @@
-import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import MenuItem from '@mui/material/MenuItem'
 import Menu from '@mui/material/Menu'
@@ -23,9 +22,10 @@ import TextField from '@mui/material/TextField'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
 import { useConfirm } from 'material-ui-confirm'
-import { createNewCardAPI, deleteColumnDetailsAPI } from '~/apis'
+import { createNewCardAPI, deleteColumnDetailsAPI, updateColumnDetailsAPI } from '~/apis'
 import { selectCurrentActiveBoard, updateCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import { useDispatch, useSelector } from 'react-redux'
+import ToggleFocusInput from '~/components/Form/ToggleFocusInput'
 
 function Column({ column }) {
   const board = useSelector(selectCurrentActiveBoard)
@@ -34,7 +34,7 @@ function Column({ column }) {
   // DnD Kit sortable hook
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: column._id,
-    data: { ...column }
+    data: { ...column },
   })
 
   const dndKitColumnStyle = {
@@ -58,7 +58,7 @@ function Column({ column }) {
   }
 
   const [openNewCardForm, setOpenNewCardForm] = useState(false)
-  const toggleOpenNewCardForm = () => setOpenNewCardForm(prev => !prev)
+  const toggleOpenNewCardForm = () => setOpenNewCardForm((prev) => !prev)
 
   const [newCardTitle, setNewCardTitle] = useState('')
 
@@ -76,12 +76,10 @@ function Column({ column }) {
 
     // this Block call api create new card and renew data in state board
     // ===================================================
-    const createdNewCard = await createNewCardAPI(
-      {
-        ...newCardData,
-        boardId: board._id
-      }
-    )
+    const createdNewCard = await createNewCardAPI({
+      ...newCardData,
+      boardId: board._id,
+    })
     // Renew column data
     // const newBoard= { ...board }
     // const columnToUpdate = newBoard.columns.find(column => column._id === createdNewCard.columnId)
@@ -91,7 +89,6 @@ function Column({ column }) {
     //   columnToUpdate.cardOrderIds.push(createdNewCard._id)
     // }
     // setBoard(newBoard)
-
 
     // Update state board and remove placeholder card if any
     // setBoard(prev => {
@@ -124,28 +121,30 @@ function Column({ column }) {
     //     columns: updatedColumns
     //   }
     // })
-    dispatch(updateCurrentActiveBoard({
-      ...board,
-      columns: board.columns.map(column => {
-        if (column._id === createdNewCard.columnId) {
-          // Remove placeholder card if any
-          if (column.cards.some(card => card.FE_PlaceholderCard)) {
-            return {
-              ...column,
-              cards: [createdNewCard],
-              cardOrderIds: [createdNewCard._id]
-            }
-          } else {
-            return {
-              ...column,
-              cards: [...column.cards, createdNewCard],
-              cardOrderIds: [...column.cardOrderIds, createdNewCard._id]
+    dispatch(
+      updateCurrentActiveBoard({
+        ...board,
+        columns: board.columns.map((column) => {
+          if (column._id === createdNewCard.columnId) {
+            // Remove placeholder card if any
+            if (column.cards.some((card) => card.FE_PlaceholderCard)) {
+              return {
+                ...column,
+                cards: [createdNewCard],
+                cardOrderIds: [createdNewCard._id],
+              }
+            } else {
+              return {
+                ...column,
+                cards: [...column.cards, createdNewCard],
+                cardOrderIds: [...column.cardOrderIds, createdNewCard._id],
+              }
             }
           }
-        }
-        return column
+          return column
+        }),
       })
-    }))
+    )
     // ===================================================
 
     // Reset form
@@ -161,7 +160,8 @@ function Column({ column }) {
   const handleDeleteColumn = async () => {
     const { confirmed } = await confirmDeleteColumn({
       title: 'Delete this column?',
-      description: 'This action will permanently delete this column and all cards in it. Are you sure you want to proceed?',
+      description:
+        'This action will permanently delete this column and all cards in it. Are you sure you want to proceed?',
       confirmationText: 'Confirm',
       cancellationText: 'Cancel',
       // global options can be overridden here
@@ -185,14 +185,16 @@ function Column({ column }) {
       //   }
       // })
 
-      dispatch(updateCurrentActiveBoard({
-        ...board,
-        columns: board.columns.filter(col => col._id !== column._id),
-        columnOrderIds: board.columnOrderIds.filter(id => id !== column._id)
-      }))
+      dispatch(
+        updateCurrentActiveBoard({
+          ...board,
+          columns: board.columns.filter((col) => col._id !== column._id),
+          columnOrderIds: board.columnOrderIds.filter((id) => id !== column._id),
+        })
+      )
 
       // call api to delete column
-      deleteColumnDetailsAPI(column._id).then(res => {
+      deleteColumnDetailsAPI(column._id).then((res) => {
         toast.success(res?.deleteResult)
       })
     }
@@ -200,8 +202,28 @@ function Column({ column }) {
     //=> "confirm" | "cancel" | "natural" | "unmount"
   }
 
+  const onUpdateColumnTitle = (newTitle) => {
+    updateColumnDetailsAPI(column._id, { title: newTitle }).then(() => {
+      //update redux state
+      dispatch(
+        updateCurrentActiveBoard({
+          ...board,
+          columns: board.columns.map((col) => {
+            if (col._id === column._id) {
+              return {
+                ...col,
+                title: newTitle,
+              }
+            }
+            return col
+          }),
+        })
+      )
+    })
+  }
+
   return (
-    <div ref={setNodeRef} style={dndKitColumnStyle} {...attributes} >
+    <div ref={setNodeRef} style={dndKitColumnStyle} {...attributes}>
       <Box
         // only listen from box, not whole column to prevent some idiot place
         {...listeners}
@@ -214,9 +236,10 @@ function Column({ column }) {
           height: 'fit-content',
           maxHeight: `calc(${theme.trello.boardContentHeight} - ${theme.spacing(5)})`,
           ...theme.applyStyles('dark', {
-            bgcolor: '#333643'
+            bgcolor: '#333643',
           }),
-        })}>
+        })}
+      >
         {/* Header */}
         <Box
           sx={{
@@ -225,8 +248,9 @@ function Column({ column }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-          }}>
-          <Typography
+          }}
+        >
+          {/* <Typography
             variant='h6'
             sx={{
               fontWeight: 'bold',
@@ -235,8 +259,8 @@ function Column({ column }) {
             }}
           >
             {column?.title}
-          </Typography>
-
+          </Typography> */}
+          <ToggleFocusInput value={column?.title} onChangedValue={onUpdateColumnTitle} data-no-dnd="true" />
           <Box>
             <Tooltip title="More options">
               <ExpandMoreIcon
@@ -265,24 +289,32 @@ function Column({ column }) {
                 sx={{
                   '&:hover': {
                     color: 'success.light',
-                    '& .add-card-icon': { color: 'success.light' }
-                  }
+                    '& .add-card-icon': { color: 'success.light' },
+                  },
                 }}
                 onClick={toggleOpenNewCardForm}
               >
-                <ListItemIcon><AddCardIcon className='add-card-icon' fontSize="small" /></ListItemIcon>
+                <ListItemIcon>
+                  <AddCardIcon className="add-card-icon" fontSize="small" />
+                </ListItemIcon>
                 <ListItemText>Add new card</ListItemText>
               </MenuItem>
               <MenuItem>
-                <ListItemIcon><ContentCut fontSize="small" /></ListItemIcon>
+                <ListItemIcon>
+                  <ContentCut fontSize="small" />
+                </ListItemIcon>
                 <ListItemText>Cut</ListItemText>
               </MenuItem>
               <MenuItem>
-                <ListItemIcon><ContentCopy fontSize="small" /></ListItemIcon>
+                <ListItemIcon>
+                  <ContentCopy fontSize="small" />
+                </ListItemIcon>
                 <ListItemText>Copy</ListItemText>
               </MenuItem>
               <MenuItem>
-                <ListItemIcon><ContentPaste fontSize="small" /></ListItemIcon>
+                <ListItemIcon>
+                  <ContentPaste fontSize="small" />
+                </ListItemIcon>
                 <ListItemText>Paste</ListItemText>
               </MenuItem>
               <Divider />
@@ -290,18 +322,20 @@ function Column({ column }) {
                 sx={{
                   '&:hover': {
                     color: 'warning.dark',
-                    '& .delete-forever-icon': { color: 'warning.dark' }
-                  }
+                    '& .delete-forever-icon': { color: 'warning.dark' },
+                  },
                 }}
                 onClick={handleDeleteColumn}
               >
-                <ListItemIcon><DeleteForeverIcon className='delete-forever-icon' fontSize="small" /></ListItemIcon>
+                <ListItemIcon>
+                  <DeleteForeverIcon className="delete-forever-icon" fontSize="small" />
+                </ListItemIcon>
                 <ListItemText>Remove this column</ListItemText>
               </MenuItem>
-              <MenuItem
-
-              >
-                <ListItemIcon><Cloud fontSize="small" /></ListItemIcon>
+              <MenuItem>
+                <ListItemIcon>
+                  <Cloud fontSize="small" />
+                </ListItemIcon>
                 <ListItemText>Archive this column</ListItemText>
               </MenuItem>
             </Menu>
@@ -316,8 +350,9 @@ function Column({ column }) {
           sx={{
             height: (theme) => theme.trello.columnFooterHeight,
             p: 2,
-          }}>
-          {!openNewCardForm ?
+          }}
+        >
+          {!openNewCardForm ? (
             <Box
               sx={{
                 height: '100%',
@@ -332,20 +367,21 @@ function Column({ column }) {
               <Tooltip title="Drag to move">
                 <DragHandleIcon sx={{ cursor: 'grab' }} />
               </Tooltip>
-            </Box> :
+            </Box>
+          ) : (
             <Box
               sx={{
                 height: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1
+                gap: 1,
               }}
             >
               <TextField
                 label="Enter card title"
                 type="text"
-                size='small'
-                variant='outlined'
+                size="small"
+                variant="outlined"
                 autoFocus // auto focus when form opens
                 data-no-dnd="true" // custom attribute to block dnd kit events
                 value={newCardTitle}
@@ -354,31 +390,31 @@ function Column({ column }) {
                   '& label': { color: 'text.primary' },
                   '& input': {
                     color: (theme) => theme.palette.primary.main,
-                    bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#333643' : 'white')
+                    bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#333643' : 'white'),
                   },
                   '& label.Mui-focused': { color: (theme) => theme.palette.primary.main },
                   '& .MuiOutlinedInput-root': {
                     '& fieldset': { borderColor: (theme) => theme.palette.primary.main },
                     '&:hover fieldset': { borderColor: (theme) => theme.palette.primary.main },
-                    '&.Mui-focused fieldset': { borderColor: (theme) => theme.palette.primary.main }
+                    '&.Mui-focused fieldset': { borderColor: (theme) => theme.palette.primary.main },
                   },
                   '& .MuiOutlinedInput-input': {
-                    borderRadius: 1
-                  }
+                    borderRadius: 1,
+                  },
                 }}
               />
               <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 1
+                  gap: 1,
                 }}
               >
                 <Button
-                  className='interceptor-loading'
-                  variant='contained'
-                  color='success'
-                  size='small'
+                  className="interceptor-loading"
+                  variant="contained"
+                  color="success"
+                  size="small"
                   sx={{
                     boxShadow: 'none',
                     border: '0.5px solid',
@@ -398,9 +434,7 @@ function Column({ column }) {
                 />
               </Box>
             </Box>
-          }
-
-
+          )}
         </Box>
       </Box>
     </div>

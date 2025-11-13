@@ -11,11 +11,7 @@ import {
 } from '~/redux/activeBoard/activeBoardSlice'
 import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
-import {
-  updateBoardDetailsAPI,
-  updateColumnDetailsAPI,
-  moveCardToDifferentColumnAPI,
-} from '~/apis'
+import { updateBoardDetailsAPI, updateColumnDetailsAPI, moveCardToDifferentColumnAPI } from '~/apis'
 import LoadingSpinner from '~/components/Loading/LoadingSpinner'
 
 function Board() {
@@ -60,11 +56,7 @@ function Board() {
 
   // Calling api to move card
   // when moving card in the same column, just need to call api to update cardOrderIds in that column
-  const moveCardInTheSameColumn = (
-    dndOrderedCards,
-    dndOrderedCardIds,
-    columnId
-  ) => {
+  const moveCardInTheSameColumn = (dndOrderedCards, dndOrderedCardIds, columnId) => {
     // update state board
     // setBoard(prev => {
     //   if (!prev) return prev
@@ -110,12 +102,7 @@ function Board() {
   // 2. update cardOrderIds in destination column
   // 3. update columnId in moved card
   // distinct API call
-  const moveCardToDifferentColumn = (
-    currentCardId,
-    prevColumnId,
-    nextColumnId,
-    dndOrderedColumns
-  ) => {
+  const moveCardToDifferentColumn = (currentCardId, prevColumnId, nextColumnId, dndOrderedColumns) => {
     const dndOrderedColumnsIds = dndOrderedColumns.map((col) => col._id)
     // setBoard(prevBoard => {
     //   if (!prevBoard) return prevBoard
@@ -135,14 +122,8 @@ function Board() {
     )
 
     // Hanle placeholder card in empty column
-    let prevCardOrderIds = dndOrderedColumns.find(
-      (col) => col._id === prevColumnId
-    )?.cardOrderIds
-    if (
-      prevCardOrderIds.length === 1 &&
-      prevCardOrderIds[0].includes('-placeholder-card')
-    )
-      prevCardOrderIds = []
+    let prevCardOrderIds = dndOrderedColumns.find((col) => col._id === prevColumnId)?.cardOrderIds
+    if (prevCardOrderIds.length === 1 && prevCardOrderIds[0].includes('-placeholder-card')) prevCardOrderIds = []
 
     // call api
     moveCardToDifferentColumnAPI({
@@ -150,14 +131,12 @@ function Board() {
       prevColumnId,
       prevCardOrderIds,
       nextColumnId,
-      nextCardOrderIds: dndOrderedColumns.find(
-        (col) => col._id === nextColumnId
-      ).cardOrderIds,
+      nextCardOrderIds: dndOrderedColumns.find((col) => col._id === nextColumnId).cardOrderIds,
     })
   }
 
   if (!board) {
-    return <LoadingSpinner caption='Loading Board...' />
+    return <LoadingSpinner caption="Loading Board..." />
   }
 
   return (
