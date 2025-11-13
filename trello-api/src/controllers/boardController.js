@@ -5,8 +5,9 @@ const createNew = async (req, res, next) => {
   try {
     // console.log('Request body in controller: ', req.body)
 
+    const userId = req.jwtDecoded._id
     // Controller navigate to SERVICE LAYER
-    const createdBoard = await boardService.createNew(req.body)
+    const createdBoard = await boardService.createNew(userId, req.body)
 
     // Return end response
     res.status(StatusCodes.CREATED).json(createdBoard)
@@ -19,8 +20,9 @@ const getDetails = async (req, res, next) => {
   try {
     // console.log('Board ID in controller: ', req.params)
     const boardId = req.params.id
+    const userId = req.jwtDecoded._id
 
-    const boardDetails = await boardService.getDetails(boardId)
+    const boardDetails = await boardService.getDetails(userId, boardId)
     res.status(StatusCodes.OK).json(boardDetails)
   } catch (error) {
     next(error)

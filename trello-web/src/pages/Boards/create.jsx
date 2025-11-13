@@ -14,8 +14,8 @@ import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
 import DescriptionIcon from '@mui/icons-material/Description'
 import { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
+import { createNewBoardAPI } from '~/apis'
 
 const SidebarItem = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -39,7 +39,7 @@ const BOARD_TYPES = {
   PRIVATE: 'private',
 }
 
-function SidebarCreateBoardModal() {
+function SidebarCreateBoardModal({ afterCreateNewBoard }) {
   const {
     control,
     register,
@@ -54,8 +54,6 @@ function SidebarCreateBoardModal() {
     },
   })
   const [isOpen, setIsOpen] = useState(false)
-  const navigate = useNavigate()
-
   const handleOpenModal = () => {
     setIsOpen(true)
   }
@@ -66,11 +64,12 @@ function SidebarCreateBoardModal() {
   }
 
   const submitCreateBoard = (data) => {
-    console.log('Creating board with data:', data)
-    // TODO: Call API to create board
-    // After successful creation, navigate to the new board
-    // navigate(`/boards/${newBoardId}`)
-    handleCloseModal()
+    // const { title, description, type } = data
+    createNewBoardAPI(data).then(() => {
+      handleCloseModal()
+      // noti parent component to load again
+      afterCreateNewBoard()
+    })
   }
 
   return (

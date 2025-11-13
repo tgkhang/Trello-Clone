@@ -33,10 +33,13 @@ const validateBeforeCreate = async (data) => {
   return await BOARD_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
 }
 
-const createNew = async (data) => {
+const createNew = async (userId, data) => {
   try {
     // Validate data before creating
     const validData = await validateBeforeCreate(data)
+
+    validData.ownerIds = [new ObjectId(userId)]
+
     // Create new board in DB with valid data
     const createdBoard = await GET_DB().collection(BOARD_COLLECTION_NAME).insertOne(validData)
     return createdBoard
@@ -56,18 +59,19 @@ const findOneById = async (boardId) => {
   }
 }
 
-const getDetails = async (boardId) => {
+const getDetails = async (userId, boardId) => {
   try {
     // return await GET_DB().collection(BOARD_COLLECTION_NAME).findOne({ _id: new ObjectId(boardId) })
+    const queryConditions = [
+      { _id: new ObjectId(boardId) },
+      { _destroy: false },
+      { $or: [{ ownerIds: { $all: [new ObjectId(userId)] } }, { memberIds: new ObjectId(userId) }] },
+    ]
+
     const result = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
       .aggregate([
-        {
-          $match: {
-            _id: new ObjectId(boardId),
-            _destroy: false,
-          },
-        },
+        { $match: { $and: queryConditions } },
         // find all columns belong to this board
         {
           $lookup: {
