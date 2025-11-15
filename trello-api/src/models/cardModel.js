@@ -1,6 +1,7 @@
 import Joi from 'joi'
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
+import { EMAIL_RULE_MESSAGE } from '~/utils/constants'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 
 // Define Collection (name & schema)
@@ -12,9 +13,23 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
   title: Joi.string().required().min(3).max(50).trim().strict(),
   description: Joi.string().optional(),
 
+  cover: Joi.string().default(null),
+  memberIds: Joi.array().items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)).default([]),
+
+  comments: Joi.array()
+    .items({
+      userId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE).required(),
+      userEmail: Joi.string().email().message(EMAIL_RULE_MESSAGE).required(),
+      userAvatar: Joi.string(),
+      userDisplayName: Joi.string(),
+      content: Joi.string().required().trim(),
+      commentedAt: Joi.date().timestamp('javascript').default(Date.now),
+    })
+    .default([]),
+
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null),
-  _destroy: Joi.boolean().default(false)
+  _destroy: Joi.boolean().default(false),
 })
 
 // fields that cannot be updated
@@ -30,23 +45,29 @@ const createNew = async (data) => {
     const newCardToAdd = {
       ...validData,
       columnId: new ObjectId(validData.columnId),
-      boardId: new ObjectId(validData.boardId)
+      boardId: new ObjectId(validData.boardId),
     }
     const createdCard = await GET_DB().collection(CARD_COLLECTION_NAME).insertOne(newCardToAdd)
     return createdCard
-  } catch (error) { throw new Error(error) }
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 const findOneById = async (cardId) => {
   try {
     // return await GET_DB().collection(CARD_COLLECTION_NAME).findOne({ _id: id })
-    return await GET_DB().collection(CARD_COLLECTION_NAME).findOne({ _id: new ObjectId(cardId) })
-  } catch (error) { throw new Error(error) }
+    return await GET_DB()
+      .collection(CARD_COLLECTION_NAME)
+      .findOne({ _id: new ObjectId(cardId) })
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 const update = async (cardId, updateData) => {
   try {
-    Object.keys(updateData).forEach(key => {
+    Object.keys(updateData).forEach((key) => {
       if (INVALID_UPDATE_FIELDS.includes(key)) {
         delete updateData[key]
       }
@@ -56,19 +77,23 @@ const update = async (cardId, updateData) => {
       updateData.columnId = new ObjectId(updateData.columnId)
     }
 
-    const result = await GET_DB().collection(CARD_COLLECTION_NAME).findOneAndUpdate(
-      { _id: new ObjectId(cardId) },
-      { $set: updateData },
-      { returnDocument: 'after' }
-    )
+    const result = await GET_DB()
+      .collection(CARD_COLLECTION_NAME)
+      .findOneAndUpdate({ _id: new ObjectId(cardId) }, { $set: updateData }, { returnDocument: 'after' })
     return result
-  } catch (error) { throw new Error(error) }
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 const deleteManyByColumnId = async (columnId) => {
   try {
-    return await GET_DB().collection(CARD_COLLECTION_NAME).deleteMany({ columnId: new ObjectId(columnId) })
-  } catch (error) { throw new Error(error) }
+    return await GET_DB()
+      .collection(CARD_COLLECTION_NAME)
+      .deleteMany({ columnId: new ObjectId(columnId) })
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 export const cardModel = {
@@ -77,5 +102,5 @@ export const cardModel = {
   createNew,
   update,
   findOneById,
-  deleteManyByColumnId
+  deleteManyByColumnId,
 }
