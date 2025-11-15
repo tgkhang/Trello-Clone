@@ -5,6 +5,7 @@ import { userReducer } from './user/userSlice'
 import { persistReducer } from 'redux-persist'
 import storage from 'redux-persist/lib/storage' // defaults to localStorage for web
 import { combineReducers } from 'redux'
+import { activeCardReducer } from './activeCard/activeCardSlice'
 
 const rootPersistConfig = {
   key: 'root', // key for the persisted data name by us, just let it be 'root'
@@ -16,6 +17,7 @@ const rootPersistConfig = {
 const reducers = combineReducers({
   activeBoard: activeBoardReducer,
   user: userReducer,
+  activeCard: activeCardReducer,
   //... add more reducers here later if needed
 })
 

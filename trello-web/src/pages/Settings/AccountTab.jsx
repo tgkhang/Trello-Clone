@@ -1,4 +1,3 @@
-import styled from '@emotion/styled'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
 import { selectCurrentUser, updateUserAPI } from '~/redux/user/userSlice'
@@ -17,19 +16,7 @@ import AccountBoxIcon from '@mui/icons-material/AccountBox'
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd'
 import { FIELD_REQUIRED_MESSAGE } from '~/utils/constants'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
-
-// Visually hidden input for file upload
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
-  height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  whiteSpace: 'nowrap',
-  width: 1,
-})
+import VisuallyHiddeninput from '~/components/Form/VisuallyHiddeninput'
 
 function AccountTab() {
   const dispatch = useDispatch()
@@ -124,7 +111,7 @@ function AccountTab() {
             <Tooltip title="Upload a new image to change your avatar">
               <Button component="label" variant="contained" size="small" startIcon={<CloudUploadIcon />}>
                 Upload
-                <VisuallyHiddenInput type="file" onChange={uploadAvatar} />
+                <VisuallyHiddeninput type="file" onChange={uploadAvatar} />
               </Button>
             </Tooltip>
           </Box>

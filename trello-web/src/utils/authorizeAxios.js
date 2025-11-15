@@ -25,6 +25,13 @@ authorizedAxiosInstance.defaults.withCredentials = true
 // Add a request interceptor
 authorizedAxiosInstance.interceptors.request.use(
   (config) => {
+    /* use local storage token if project need that
+    // const token = localStorage.getItem('accessToken')
+    // if (token) {
+    //   config.headers['Authorization'] = `Bearer ${token}`
+    // }
+    */
+
     // Technique: block spam clicks or actions during loading state
     interceptorLoadingElements(true)
 
