@@ -23,7 +23,7 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
       userAvatar: Joi.string(),
       userDisplayName: Joi.string(),
       content: Joi.string().required().trim(),
-      commentedAt: Joi.date().timestamp('javascript').default(Date.now),
+      createdAt: Joi.date().timestamp('javascript').default(Date.now),
     })
     .default([]),
 
@@ -96,6 +96,21 @@ const deleteManyByColumnId = async (columnId) => {
   }
 }
 
+const unShiftNewComment = async (cardId, commentData) => {
+  try {
+    const result = await GET_DB()
+      .collection(CARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: new ObjectId(cardId) },
+        { $push: { comments: { $each: [commentData], $position: 0 } } },
+        { returnDocument: 'after' }
+      )
+    return result
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
 export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
@@ -103,4 +118,5 @@ export const cardModel = {
   update,
   findOneById,
   deleteManyByColumnId,
+  unShiftNewComment,
 }

@@ -6,10 +6,10 @@ import Avatar from '@mui/material/Avatar'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
+import moment from 'moment/moment'
 
-function CardActivitySelection() {
+function CardActivitySelection({ cardComments = [], onAddCardComment }) {
   const currentUser = useSelector(selectCurrentUser)
-  const [comments, setComments] = useState([])
   const [commentText, setCommentText] = useState('')
 
   const handleAddCardComment = (event) => {
@@ -18,28 +18,17 @@ function CardActivitySelection() {
       if (!event.target.value.trim()) return
 
       const commentToAdd = {
-        id: Date.now(),
         userAvatar: currentUser?.avatar,
         userDisplayName: currentUser?.displayName,
         content: event.target.value.trim(),
-        createdAt: new Date().toISOString(),
       }
 
-      setComments([commentToAdd, ...comments])
-      setCommentText('')
-      event.target.value = ''
+      onAddCardComment(commentToAdd).then(() => {
+        // Clear input field after successfully adding comment
+        setCommentText('')
+        event.target.value = ''
+      })
     }
-  }
-
-  const formatTimeAgo = (dateString) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInSeconds = Math.floor((now - date) / 1000)
-
-    if (diffInSeconds < 60) return 'just now'
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
-    return `${Math.floor(diffInSeconds / 86400)} days ago`
   }
 
   return (
@@ -59,29 +48,26 @@ function CardActivitySelection() {
       </Box>
 
       {/* List of comments */}
-      {comments.length > 0 && (
+
+      {cardComments.length === 0 && <Typography sx={{ color: 'text.secondary' }}>No activity yet.</Typography>}
+      {cardComments.length > 0 && (
         <Box sx={{ mt: 3 }}>
-          {comments.map((comment, index) => (
+          {cardComments.map((comment, index) => (
             <Box key={comment.id}>
               <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                <Avatar
-                  sx={{ width: 32, height: 32 }}
-                  alt={comment.userDisplayName}
-                  src={comment.userAvatar}
-                />
+                <Avatar sx={{ width: 32, height: 32 }} alt={comment.userDisplayName} src={comment.userAvatar} />
                 <Box sx={{ flex: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                       {comment.userDisplayName}
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {formatTimeAgo(comment.createdAt)}
+                      {moment(comment.createdAt).fromNow()}
                     </Typography>
                   </Box>
                   <Box
                     sx={{
-                      backgroundColor: (theme) =>
-                        theme.palette.mode === 'dark' ? '#2f3542' : '#f4f5f7',
+                      backgroundColor: (theme) => (theme.palette.mode === 'dark' ? '#2f3542' : '#f4f5f7'),
                       padding: '8px 12px',
                       borderRadius: '8px',
                     }}
@@ -92,7 +78,7 @@ function CardActivitySelection() {
                   </Box>
                 </Box>
               </Box>
-              {index < comments.length - 1 && <Divider sx={{ my: 2 }} />}
+              {index < cardComments.length - 1 && <Divider sx={{ my: 2 }} />}
             </Box>
           ))}
         </Box>
