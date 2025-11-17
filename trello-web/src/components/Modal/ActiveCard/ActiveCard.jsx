@@ -89,8 +89,16 @@ function ActiveCard() {
       return
     }
     let reqData = new FormData()
-    reqData.append('cover', event.target?.files[0])
-    //call api upload card cover
+    reqData.append('cardCover', event.target?.files[0])
+    //call api upload card cover and clear input value after upload to allow re-upload same file
+    toast.promise(
+      callAPIUpdateCard(reqData).finally(() => (event.target.value = null)),
+      {
+        pending: 'Uploading cover...',
+        success: 'Cover uploaded successfully!',
+        error: 'Failed to upload cover.',
+      }
+    )
   }
 
   return (
