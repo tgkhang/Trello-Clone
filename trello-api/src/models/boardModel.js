@@ -6,6 +6,7 @@ import { BOARD_TYPES } from '~/utils/constants'
 import { columnModel } from '~/models/columnModel'
 import { cardModel } from '~/models/cardModel'
 import { pagingSkipValue } from '~/utils/algorithms'
+import { userModel } from './userModel'
 
 // Define Collection name and schema
 const BOARD_COLLECTION_NAME = 'boards'
@@ -87,6 +88,27 @@ const getDetails = async (userId, boardId) => {
             localField: '_id', // attribute of BOARD collection
             foreignField: 'boardId', // attribute of CARD collection
             as: 'cards', // name of the new array
+          },
+        },
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: 'ownerIds',
+            foreignField: '_id',
+            as: 'owners',
+            // pileline to handle multiple flow
+            // field password and verifyToken should not be returned just as use pickUser in userService.js
+            pipeline: [{ $project: { password: 0, verifyToken: 0 } }],
+          },
+        },
+        {
+          $lookup: {
+            from: userModel.USER_COLLECTION_NAME,
+            localField: 'memberIds',
+            foreignField: '_id',
+            as: 'members',
+            // pileline to handle multiple flow
+            pipeline: [{ $project: { password: 0, verifyToken: 0 } }],
           },
         },
       ])

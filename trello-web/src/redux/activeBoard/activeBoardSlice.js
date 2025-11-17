@@ -34,26 +34,48 @@ export const activeBoardSlice = createSlice({
 
       // update curerent active board again
       state.currentActiveBoard = board
-    }
+    },
+    updateCardInBoard: (state, actions) => {
+      // update nested data
+      const incommingCard = actions.payload
+
+      // find card from board -> column -> cards
+      const column = state.currentActiveBoard.columns.find((col) => col._id === incommingCard.columnId)
+
+      if (column) {
+        const card = column.cards.find((c) => c._id === incommingCard._id)
+        if (card) {
+          // card.title = incommingCard.title
+          // card['title'] = incommingCard['title']
+          // VJP: loop through keys of incommingCard to update card
+          Object.keys(incommingCard).forEach((key) => {
+            card[key] = incommingCard[key]
+          })
+        }
+      }
+    },
   },
   // extraReducers: handle ASYNCHRONOUS data
   extraReducers: (builder) => {
-    builder.addCase(fetchBoardDetailsAPI.fulfilled, // catch case for successful API call, dead case catch by axios
+    builder.addCase(
+      fetchBoardDetailsAPI.fulfilled, // catch case for successful API call, dead case catch by axios
       (state, action) => {
         // payload from return of async function api above (response.data)
         let board = action.payload
 
+        // merge members of board from member and owners
+        board.FE_allMembers = board.owners.concat(board.members)
+
         // handle needed logic before update to state
         // sort data column order before passing to child component
         board.columns = mapOrder(board.columns, board.columnOrderIds, '_id')
-        board.columns.forEach(column => {
+        board.columns.forEach((column) => {
           // drag with empty columns
           if (isEmpty(column.cards)) {
             const placeholderCard = generatePlaceholderCard(column)
             column.cards = [placeholderCard]
             column.cardOrderIds = [placeholderCard._id]
-          }
-          else {
+          } else {
             // sort cards before passing to child component
             column.cards = mapOrder(column.cards, column.cardOrderIds, '_id')
           }
@@ -61,12 +83,13 @@ export const activeBoardSlice = createSlice({
 
         // update curerent active board again
         state.currentActiveBoard = board
-      })
-  }
+      }
+    )
+  },
 })
 
 // Action creators are generated for each case reducer function
-export const { updateCurrentActiveBoard } = activeBoardSlice.actions
+export const { updateCurrentActiveBoard, updateCardInBoard } = activeBoardSlice.actions
 
 // Selector : a way for child component to get specific data from redux store to use
 export const selectCurrentActiveBoard = (state) => {

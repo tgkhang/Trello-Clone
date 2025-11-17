@@ -1,5 +1,6 @@
 import { cardModel } from '~/models/cardModel'
 import { columnModel } from '~/models/columnModel'
+import { CloudinaryProvider } from '~/providers/CloudinaryProvider'
 
 const createNew = async (reqBody) => {
   try {
@@ -19,9 +20,22 @@ const createNew = async (reqBody) => {
   }
 }
 
-const update = async (cardId, reqBody) => {
+const update = async (cardId, reqBody, cardCoverFile) => {
   try {
-    const updatedCard = await cardModel.update(cardId, reqBody)
+    const updateData = { ...reqBody, updatedAt: Date.now() }
+    let updatedCard = {}
+    if (cardCoverFile) {
+      // case upload avatar
+      const uploadResult = await CloudinaryProvider.streamUpload(cardCoverFile.buffer, 'card-covers')
+      // save url
+      updatedCard = await cardModel.update(cardId, {
+        cover: uploadResult.secure_url,
+      })
+    } else {
+      // update without cover file (normal update: title, description, etc)
+      updatedCard = await cardModel.update(cardId, updateData)
+    }
+
     return updatedCard
   } catch (error) {
     throw error

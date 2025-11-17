@@ -5,7 +5,7 @@ import { ALLOWED_COMMON_FILE_TYPES, LIMIT_COMMON_FILE_SIZE_BYTES } from '~/utils
 
 // function check file type accept
 const customFileFilter = (req, file, cb) => {
-  console.log(file)
+  // console.log(file)
 
   if (!ALLOWED_COMMON_FILE_TYPES.includes(file.mimetype)) {
     const errorMessage = 'Unsupported file type.'

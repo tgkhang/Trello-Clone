@@ -29,6 +29,7 @@ import {
   updateCurrentActiveCard,
 } from '~/redux/activeCard/activeCardSlice'
 import { updateCardDetailsAPI } from '~/apis'
+import { updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
 
 const SidebarItem = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -66,7 +67,7 @@ function ActiveCard() {
     dispatch(updateCurrentActiveCard(updatedCard))
 
     // update data in nested board
-    // dispatch(updateCardInActiveBoardNested(updatedCard))
+    dispatch(updateCardInBoard(updatedCard))
 
     return updatedCard
   }
@@ -76,6 +77,11 @@ function ActiveCard() {
     callAPIUpdateCard({ title: newTitle.trim() })
   }
 
+  const onUpdateCardDescription = (newDescription) => {
+    //call api to update card description
+    callAPIUpdateCard({ description: newDescription.trim() })
+  }
+
   const onUploadCardCover = (event) => {
     const error = singleFileValidator(event.target?.files[0])
     if (error) {
@@ -83,9 +89,18 @@ function ActiveCard() {
       return
     }
     let reqData = new FormData()
-    reqData.append('cover', event.target?.files[0])
-    //call api upload card cover
+    reqData.append('cardCover', event.target?.files[0])
+    //call api upload card cover and clear input value after upload to allow re-upload same file
+    toast.promise(
+      callAPIUpdateCard(reqData).finally(() => (event.target.value = null)),
+      {
+        pending: 'Uploading cover...',
+        success: 'Cover uploaded successfully!',
+        error: 'Failed to upload cover.',
+      }
+    )
   }
+
   return (
     <Modal disableScrollLock open={true} onClose={handleCloseModal} sx={{ overflowY: 'auto' }}>
       <Box
@@ -143,7 +158,10 @@ function ActiveCard() {
                   Description
                 </Typography>
               </Box>
-              <CardDescriptionMdEditor />
+              <CardDescriptionMdEditor
+                cardDescriptionProp={activeCard?.description}
+                handleUpdateDescription={onUpdateCardDescription}
+              />
             </Box>
 
             <Box sx={{ mb: 3 }}>
