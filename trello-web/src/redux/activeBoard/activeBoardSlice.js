@@ -63,6 +63,9 @@ export const activeBoardSlice = createSlice({
         // payload from return of async function api above (response.data)
         let board = action.payload
 
+        // merge members of board from member and owners
+        board.FE_allMembers = board.owners.concat(board.members)
+
         // handle needed logic before update to state
         // sort data column order before passing to child component
         board.columns = mapOrder(board.columns, board.columnOrderIds, '_id')
