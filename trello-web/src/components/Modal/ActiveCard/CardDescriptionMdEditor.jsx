@@ -8,27 +8,17 @@ import MDEditor from '@uiw/react-md-editor'
 import EditNoteIcon from '@mui/icons-material/EditNote'
 import rehypeSanitize from 'rehype-sanitize'
 
-const markdownValueExample = `
-  Markdown Content Example: 
-
-  **Hello world | Trello Clone**
-  \`\`\`javascript
-  import React from "react"
-  import ReactDOM from "react-dom"
-  import MDEditor from '@uiw/react-md-editor'
-  \`\`\`
-`
-
-function CardDescriptionMdEditor() {
+function CardDescriptionMdEditor({ cardDescriptionProp, handleUpdateDescription }) {
   const { mode } = useColorScheme()
 
   const currentUser = useSelector(selectCurrentUser)
   const [markdownEditMode, setMarkdownEditMode] = useState(false)
-  const [cardDescription, setCardDescription] = useState(markdownValueExample)
+  const [cardDescription, setCardDescription] = useState(cardDescriptionProp || '')
 
   const updateCardDescription = () => {
     setMarkdownEditMode(false)
     console.log('Updated card description:', cardDescription)
+    handleUpdateDescription(cardDescription)
   }
 
   return (
@@ -74,8 +64,8 @@ function CardDescriptionMdEditor() {
               source={cardDescription}
               style={{
                 whiteSpace: 'pre-wrap',
-                padding: '10px',
-                border: '0.5px solid rgba(0,0,0,0.2)',
+                padding: cardDescription ? '10px' : '0',
+                border: cardDescription ? '0.5px solid rgba(0,0,0,0.2)' : 'none',
                 borderRadius: '8px',
               }}
             />

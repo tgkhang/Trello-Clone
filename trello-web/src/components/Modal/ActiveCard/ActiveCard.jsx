@@ -29,6 +29,7 @@ import {
   updateCurrentActiveCard,
 } from '~/redux/activeCard/activeCardSlice'
 import { updateCardDetailsAPI } from '~/apis'
+import { updateCardInBoard } from '~/redux/activeBoard/activeBoardSlice'
 
 const SidebarItem = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -66,7 +67,7 @@ function ActiveCard() {
     dispatch(updateCurrentActiveCard(updatedCard))
 
     // update data in nested board
-    // dispatch(updateCardInActiveBoardNested(updatedCard))
+    dispatch(updateCardInBoard(updatedCard))
 
     return updatedCard
   }
@@ -74,6 +75,11 @@ function ActiveCard() {
   const onUpdateCardTitle = (newTitle) => {
     //call api to update card title
     callAPIUpdateCard({ title: newTitle.trim() })
+  }
+
+  const onUpdateCardDescription = (newDescription) => {
+    //call api to update card description
+    callAPIUpdateCard({ description: newDescription.trim() })
   }
 
   const onUploadCardCover = (event) => {
@@ -86,6 +92,7 @@ function ActiveCard() {
     reqData.append('cover', event.target?.files[0])
     //call api upload card cover
   }
+
   return (
     <Modal disableScrollLock open={true} onClose={handleCloseModal} sx={{ overflowY: 'auto' }}>
       <Box
@@ -143,7 +150,10 @@ function ActiveCard() {
                   Description
                 </Typography>
               </Box>
-              <CardDescriptionMdEditor />
+              <CardDescriptionMdEditor
+                cardDescriptionProp={activeCard?.description}
+                handleUpdateDescription={onUpdateCardDescription}
+              />
             </Box>
 
             <Box sx={{ mb: 3 }}>
