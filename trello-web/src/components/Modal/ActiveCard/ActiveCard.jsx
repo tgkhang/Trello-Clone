@@ -24,8 +24,9 @@ import WatchLaterOutlinedIcon from '@mui/icons-material/WatchLaterOutlined'
 import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined'
 import { useDispatch, useSelector } from 'react-redux'
 import {
-  clearCurrentActiveCard,
+  clearAndHideCurrentActiveCard,
   selectCurrentActiveCard,
+  selectIsShowModalActiveCard,
   updateCurrentActiveCard,
 } from '~/redux/activeCard/activeCardSlice'
 import { updateCardDetailsAPI } from '~/apis'
@@ -54,10 +55,11 @@ const SidebarItem = styled(Box)(({ theme }) => ({
 function ActiveCard() {
   const dispatch = useDispatch()
   const activeCard = useSelector(selectCurrentActiveCard)
+  const isShowModalActiveCard = useSelector(selectIsShowModalActiveCard)
 
   const handleCloseModal = () => {
     //dispatch action to close modal
-    dispatch(clearCurrentActiveCard())
+    dispatch(clearAndHideCurrentActiveCard())
   }
 
   const callAPIUpdateCard = async (updateData) => {
@@ -102,7 +104,7 @@ function ActiveCard() {
   }
 
   return (
-    <Modal disableScrollLock open={true} onClose={handleCloseModal} sx={{ overflowY: 'auto' }}>
+    <Modal disableScrollLock open={isShowModalActiveCard} onClose={handleCloseModal} sx={{ overflowY: 'auto' }}>
       <Box
         sx={{
           position: 'relative',
@@ -142,7 +144,7 @@ function ActiveCard() {
 
         <Box sx={{ mb: 1, mt: -3, pr: 2.5, display: 'flex', alignItems: 'center', gap: 1 }}>
           <CreditCardIcon />
-          <ToggleFocusInput inputFontSize="22px" value={activeCard.title} onChangedValue={onUpdateCardTitle} />
+          <ToggleFocusInput inputFontSize="22px" value={activeCard?.title} onChangedValue={onUpdateCardTitle} />
         </Box>
 
         <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>

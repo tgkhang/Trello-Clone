@@ -9,10 +9,12 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
+import Divider from '@mui/material/Divider'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
-import Avatar from '@mui/material/Avatar'
+import GoogleIcon from '@mui/icons-material/Google'
+import FacebookIcon from '@mui/icons-material/Facebook'
+import AppleIcon from '@mui/icons-material/Apple'
 import Zoom from '@mui/material/Zoom'
 import Alert from '@mui/material/Alert'
 import {
@@ -67,7 +69,21 @@ function LoginForm() {
 
   return (
     <Zoom in={true} style={{ transitionDelay: '200ms' }}>
-      <Card sx={{ minWidth: 380, maxWidth: 400, width: '100%', mx: 2 }}>
+      <Card
+        sx={{
+          minWidth: 380,
+          maxWidth: 450,
+          width: '100%',
+          mx: 2,
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '20px',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
         <CardContent sx={{ p: 4 }}>
           <Box
             sx={{
@@ -77,11 +93,17 @@ function LoginForm() {
               mb: 3,
             }}
           >
-            <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
-              <LockOutlinedIcon />
-            </Avatar>
-            <Typography component="h1" variant="h5" fontWeight="bold">
-              Sign In
+            <Typography
+              component="h1"
+              variant="h4"
+              fontWeight="bold"
+              sx={{
+                color: 'white',
+                mb: 1,
+                textShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              Login
             </Typography>
           </Box>
 
@@ -102,11 +124,26 @@ function LoginForm() {
 
             <TextField
               fullWidth
-              label="Email Address"
+              placeholder="Email"
               margin="normal"
               autoComplete="email"
               autoFocus
               error={!!errors.email}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  borderRadius: '10px',
+                  '& fieldset': {
+                    borderColor: 'transparent',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'rgba(66, 153, 225, 0.5)',
+                  },
+                },
+              }}
               {...register('email', {
                 required: FIELD_REQUIRED_MESSAGE,
                 pattern: {
@@ -119,19 +156,36 @@ function LoginForm() {
 
             <TextField
               fullWidth
-              label="Password"
+              placeholder="Password"
               type={showPassword ? 'text' : 'password'}
               margin="normal"
               autoComplete="current-password"
               error={!!errors.password}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  borderRadius: '10px',
+                  '& fieldset': {
+                    borderColor: 'transparent',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'rgba(66, 153, 225, 0.5)',
+                  },
+                },
+              }}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} edge="end">
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
               }}
               {...register('password', {
                 required: FIELD_REQUIRED_MESSAGE,
@@ -143,31 +197,125 @@ function LoginForm() {
             />
             <FieldErrorAlert errors={errors} fieldName="password" />
 
+            {/* <Box sx={{ textAlign: 'right', mt: 1 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  '&:hover': { color: 'white' },
+                }}
+              >
+                Forgot Password?
+              </Typography>
+            </Box> */}
+
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2, py: 1.5 }}
+              sx={{
+                mt: 2,
+                mb: 2,
+                py: 1.5,
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+                fontWeight: 'bold',
+                fontSize: '1rem',
+                textTransform: 'none',
+                boxShadow: '0 4px 15px 0 rgba(30, 60, 114, 0.5)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #2a5298 0%, #1e3c72 100%)',
+                  boxShadow: '0 6px 20px 0 rgba(30, 60, 114, 0.6)',
+                },
+              }}
               disabled={isSubmitting}
               className="interceptor-loading"
             >
-              {isSubmitting ? 'Signing In...' : 'Sign In'}
+              {isSubmitting ? 'Signing In...' : 'Sign in'}
             </Button>
 
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary">
-                Donnot have an account?{' '}
-                <Link
-                  to="/register"
-                  style={{
-                    textDecoration: 'none',
-                    color: 'inherit',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  Sign Up
-                </Link>
+            {/* <Divider sx={{ my: 2, color: 'rgba(255, 255, 255, 0.6)' }}>
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                or continue with
               </Typography>
+            </Divider>
+
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Button
+                fullWidth
+                variant="outlined"
+                sx={{
+                  py: 1.2,
+                  borderRadius: '10px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  border: 'none',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 1)',
+                    border: 'none',
+                  },
+                }}
+              >
+                <GoogleIcon sx={{ color: '#DB4437' }} />
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                sx={{
+                  py: 1.2,
+                  borderRadius: '10px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  border: 'none',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 1)',
+                    border: 'none',
+                  },
+                }}
+              >
+                <AppleIcon sx={{ color: '#000000' }} />
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                sx={{
+                  py: 1.2,
+                  borderRadius: '10px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  border: 'none',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 1)',
+                    border: 'none',
+                  },
+                }}
+              >
+                <FacebookIcon sx={{ color: '#4267B2' }} />
+              </Button>
+            </Box> */}
+
+            <Box sx={{ textAlign: 'center' }}>
+              <Button
+                component={Link}
+                to="/register"
+                fullWidth
+                variant="contained"
+                sx={{
+                  mb: 2,
+                  py: 1.5,
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+                  fontWeight: 'bold',
+                  fontSize: '1rem',
+                  textTransform: 'none',
+                  boxShadow: '0 4px 15px 0 rgba(30, 60, 114, 0.5)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #2a5298 0%, #1e3c72 100%)',
+                    boxShadow: '0 6px 20px 0 rgba(30, 60, 114, 0.6)',
+                  },
+                }}
+              >
+                Signup for free
+              </Button>
             </Box>
           </Box>
         </CardContent>
