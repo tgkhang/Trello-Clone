@@ -1,21 +1,12 @@
 import Joi from 'joi'
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
-import { EMAIL_RULE_MESSAGE } from '~/utils/constants'
+import { EMAIL_RULE_MESSAGE, USER_ROLES } from '~/utils/constants'
 
 const USER_COLLECTION_NAME = 'users'
 
-const USER_ROLES = {
-  ADMIN: 'admin',
-  CLIENT: 'client',
-}
 const USER_COLLECTION_SCHEMA = Joi.object({
-  email: Joi.string()
-    .email()
-    .required()
-    .trim()
-    .lowercase()
-    .message(EMAIL_RULE_MESSAGE),
+  email: Joi.string().email().required().trim().lowercase().message(EMAIL_RULE_MESSAGE),
   password: Joi.string().required(),
   username: Joi.string().min(3).max(30).trim().strict(),
   displayName: Joi.string().optional().min(3).max(50).trim().strict(),
@@ -41,9 +32,7 @@ const validateBeforeCreate = async (data) => {
 const createNew = async (data) => {
   try {
     const validData = await validateBeforeCreate(data)
-    const createdUser = await GET_DB()
-      .collection(USER_COLLECTION_NAME)
-      .insertOne(validData)
+    const createdUser = await GET_DB().collection(USER_COLLECTION_NAME).insertOne(validData)
     return createdUser
   } catch (error) {
     throw new Error(error)
@@ -63,9 +52,7 @@ const findOneById = async (userId) => {
 
 const findOneByEmail = async (email) => {
   try {
-    const res = await GET_DB()
-      .collection(USER_COLLECTION_NAME)
-      .findOne({ email })
+    const res = await GET_DB().collection(USER_COLLECTION_NAME).findOne({ email })
     return res
   } catch (error) {
     throw new Error(error)
@@ -82,11 +69,7 @@ const update = async (userId, updateData) => {
 
     const result = await GET_DB()
       .collection(USER_COLLECTION_NAME)
-      .findOneAndUpdate(
-        { _id: new ObjectId(userId) },
-        { $set: updateData },
-        { returnDocument: 'after' }
-      )
+      .findOneAndUpdate({ _id: new ObjectId(userId) }, { $set: updateData }, { returnDocument: 'after' })
     return result
   } catch (error) {
     throw new Error(error)

@@ -23,3 +23,18 @@ export const WEBSITE_DOMAIN =
 
 export const DEFAULT_PAGE = 1
 export const DEFAULT_ITEMS_PER_PAGE = 12 //need to match frontend constants
+
+export const INVITATION_TYPES = {
+  BOARD_INVITATION: 'BOARD_INVITATION',
+}
+
+export const BOARD_INVITATION_STATUS = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+}
+
+export const USER_ROLES = {
+  ADMIN: 'admin',
+  CLIENT: 'client',
+}
