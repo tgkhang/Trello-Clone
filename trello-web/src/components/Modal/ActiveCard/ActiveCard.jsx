@@ -1,5 +1,4 @@
 import styled from '@emotion/styled'
-import React, { useState } from 'react'
 import { toast } from 'react-toastify'
 import { singleFileValidator } from '~/utils/validators'
 import Modal from '@mui/material/Modal'
@@ -103,6 +102,11 @@ function ActiveCard() {
     )
   }
 
+  const onAddCardComment = async (commentToAdd) => {
+    // call api to add comment
+    await callAPIUpdateCard({ commentToAdd })
+  }
+
   return (
     <Modal disableScrollLock open={isShowModalActiveCard} onClose={handleCloseModal} sx={{ overflowY: 'auto' }}>
       <Box
@@ -173,7 +177,7 @@ function ActiveCard() {
                   Activity
                 </Typography>
               </Box>
-              <CardActivitySelection />
+              <CardActivitySelection cardComments={activeCard?.comments} onAddCardComment={onAddCardComment} />
             </Box>
           </Box>
 
