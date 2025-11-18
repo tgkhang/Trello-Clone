@@ -3,23 +3,30 @@ name: Deploy API to VPS
 on:
   push:
     branches:
-      - main  # Deploy when pushing to main branch
+      - main
     paths:
-      - 'trello-api/**'  # Only run when API files change
-  workflow_dispatch:  # Allow manual deployment from GitHub UI
+      - 'trello-api/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
     name: Deploy to Production Server
     runs-on: ubuntu-latest
+    
+    # ADD THIS SECTION ⬇️
+    permissions:
+      deployments: write
+      contents: read
+      statuses: write
+    
     environment:
       name: production-api
       url: https://trello.be.khangdev.me
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Start Deployment
         uses: bobheadxi/deployments@v1
         id: deployment
@@ -27,7 +34,8 @@ jobs:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
           env: production-api
-
+          ref: ${{ github.sha }}  # ADD THIS LINE
+      
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -38,24 +46,27 @@ jobs:
           script: |
             # Navigate to project directory
             cd ~/trello/Trello-Clone/trello-api
-
+            
             # Pull latest changes
             git pull origin main
-
-            # Install dependencies (if package.json changed)
+            
+            # Install dependencies
             npm install
-
+            
             # Build the project
             npm run build
-
-            # Restart PM2 process
-            pm2 restart trello-api
-
+            
+            # Restart PM2 (with fallback if process doesn't exist)
+            pm2 restart trello-api || PORT=3000 pm2 start npm --name "trello-api" -- run production
+            
+            # Save PM2 config
+            pm2 save
+            
             # Show status
             pm2 status
-
-            echo "Deployment completed successfully!"
-
+            
+            echo "✅ Deployment completed successfully!"
+      
       - name: Update Deployment Status
         uses: bobheadxi/deployments@v1
         if: always()
@@ -63,6 +74,6 @@ jobs:
           step: finish
           token: ${{ secrets.GITHUB_TOKEN }}
           status: ${{ job.status }}
-          env: ${{ steps.deployment.outputs.env }}
+          env: production-api
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           env_url: https://trello.be.khangdev.me
