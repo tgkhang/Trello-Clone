@@ -10,10 +10,21 @@ jobs:
   deploy:
     name: Deploy to Production Server
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://trello.be.khangdev.me
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Start Deployment
+        uses: bobheadxi/deployments@v1
+        id: deployment
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          env: production
 
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1.0.0
@@ -42,3 +53,14 @@ jobs:
             pm2 status
 
             echo "Deployment completed successfully!"
+
+      - name: Update Deployment Status
+        uses: bobheadxi/deployments@v1
+        if: always()
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          env: ${{ steps.deployment.outputs.env }}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          env_url: https://trello.be.khangdev.me
