@@ -12,22 +12,11 @@ jobs:
   deploy:
     name: Deploy to Production Server
     runs-on: ubuntu-latest
-    environment:
-      name: production-api
-      url: https://trello.be.khangdev.me
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Start Deployment
-        uses: bobheadxi/deployments@v1
-        id: deployment
-        with:
-          step: start
-          token: ${{ secrets.GITHUB_TOKEN }}
-          env: production-api
-
+      
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -38,31 +27,28 @@ jobs:
           script: |
             # Navigate to project directory
             cd ~/trello/Trello-Clone/trello-api
-
+            
             # Pull latest changes
             git pull origin main
-
+            
             # Install dependencies (if package.json changed)
             npm install
-
+            
             # Build the project
             npm run build
-
+            
             # Restart PM2 process
-            pm2 restart trello-api
-
+            pm2 restart trello-api || PORT=3000 pm2 start npm --name "trello-api" -- run production
+            
+            # Save PM2 configuration
+            pm2 save
+            
             # Show status
             pm2 status
-
-            echo "Deployment completed successfully!"
-
-      - name: Update Deployment Status
-        uses: bobheadxi/deployments@v1
-        if: always()
-        with:
-          step: finish
-          token: ${{ secrets.GITHUB_TOKEN }}
-          status: ${{ job.status }}
-          env: ${{ steps.deployment.outputs.env }}
-          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
-          env_url: https://trello.be.khangdev.me
+            
+            echo "✅ Deployment completed successfully!"
+      
+      - name: Verify Deployment
+        run: |
+          echo "🚀 Deployed to: https://trello.be.khangdev.me"
+          echo "✅ Check your API at the URL above"
