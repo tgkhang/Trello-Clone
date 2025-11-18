@@ -20,9 +20,11 @@ import {
   fetchInvitationsAPI,
   updateBoardInvitationAPI,
   selectCurrentNotifications,
+  addNotification,
 } from '~/redux/notifications/notificationsSlice'
 import { BOARD_INVITATION_STATUS } from '~/utils/constants'
 import { toast } from 'react-toastify'
+import { socketIoInstance } from '~/main'
 
 function Notifications() {
   const dispatch = useDispatch()
@@ -39,6 +41,30 @@ function Notifications() {
       dispatch(fetchInvitationsAPI())
     }
   }, [isOpen, currentUser, dispatch])
+
+  // Handle real-time invitation via socket.io
+  useEffect(() => {
+    // function handle when receive real-time invitation via socket.io
+    const onReceiveNewInvitation = (invitation) => {
+      // Only add if invitation is for current user
+      if (invitation?.inviteeId === currentUser?._id) {
+        dispatch(addNotification(invitation))
+
+        // Show toast notification
+        const inviterName = invitation?.inviter?.displayName || invitation?.inviter?.username || 'Someone'
+        const boardTitle = invitation?.board?.title || 'a board'
+        toast.info(`${inviterName} invited you to join ${boardTitle}`, { theme: 'colored' })
+      }
+    }
+
+    //listen real time event name BE_USER_INVITED_TO_BOARD
+    socketIoInstance.on('BE_USER_INVITED_TO_BOARD', onReceiveNewInvitation)
+
+    // clean up to prevent multiple event binding
+    return () => {
+      socketIoInstance.off('BE_USER_INVITED_TO_BOARD', onReceiveNewInvitation)
+    }
+  }, [currentUser, dispatch])
 
   const handleClickNotification = (event) => {
     setAnchorEl(event.currentTarget)

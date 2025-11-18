@@ -8,6 +8,9 @@ import { APIs_V1 } from '~/routes/v1'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
 import { corsOptions } from '~/config/cors.js'
 import cookieParser from 'cookie-parser'
+import socketIo from 'socket.io'
+import http from 'http'
+import { inviteUserToBoardSocket } from './sockets/inviteUserToBoardSocket'
 
 const START_SERVER = () => {
   const app = express()
@@ -33,12 +36,21 @@ const START_SERVER = () => {
   // Middleware for handling errors globally
   app.use(errorHandlingMiddleware)
 
+  // Create HTTP server for Socket.io
+  const server = http.createServer(app)
+  const io = socketIo(server, { cors: corsOptions })
+  io.on('connection', (socket) => {
+    console.log('A user connected to Socket.io')
+
+    inviteUserToBoardSocket(socket)
+  })
+
   if (env.BUILD_MODE === 'production') {
-    app.listen(process.env.PORT, () => {
+    server.listen(process.env.PORT, () => {
       console.log(`3.Production: Server is running at ${process.env.PORT}`)
     })
   } else {
-    app.listen(PORT, hostname, () => {
+    server.listen(PORT, hostname, () => {
       console.log(`3.Local: Server is running on http://${hostname}:${PORT}`)
     })
   }

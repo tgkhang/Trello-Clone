@@ -12,6 +12,7 @@ import { selectCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import { inviteUserToBoardAPI } from '~/apis'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import { EMAIL_RULE, EMAIL_RULE_MESSAGE, FIELD_REQUIRED_MESSAGE } from '~/utils/validators'
+import { socketIoInstance } from '~/main'
 
 function InviteBoardUser() {
   const board = useSelector(selectCurrentActiveBoard)
@@ -42,11 +43,13 @@ function InviteBoardUser() {
     inviteUserToBoardAPI({
       boardId: board?._id,
       inviteEmail: inviteEmail.trim(),
-    }).then(() => {
+    }).then((invitation) => {
       setValue('inviteEmail', '')
       setAnchorPopoverElement(null)
 
-      // OPTIONAL: realtime notification to invited user using socket.io
+      // Real time
+      // send invitation to server via socket.io
+      socketIoInstance.emit('FE_USER_INVITED_TO_BOARD', invitation)
     })
   }
 
