@@ -42,6 +42,67 @@ const createNewBoardInvitation = async (reqBody, inviterId) => {
   }
 }
 
+const getInvitations = async (userId) => {
+  try {
+    const invitations = await invitationModel.findByUser(userId)
+
+    const res = invitations.map((item) => {
+      return {
+        ...item,
+        inviter: item.inviter[0] || {},
+        invitee: item.invitee[0] || {},
+        board: item.board[0] || {},
+      }
+    })
+
+    return res
+  } catch (error) {
+    throw error
+  }
+}
+
+const updateBoardInvitation = async (userId, invitationId, status) => {
+  try {
+    // Get the invitation
+    const invitation = await invitationModel.findOneById(invitationId)
+    if (!invitation) {
+      throw new ApiError(StatusCodes.NOT_FOUND, 'Invitation not found')
+    }
+
+    // Check if the user is the invitee
+    if (invitation.inviteeId.toString() !== userId) {
+      throw new ApiError(StatusCodes.FORBIDDEN, 'You are not authorized to update this invitation')
+    }
+
+    // Check if invitation is already processed
+    if (invitation.boardInvitation.status !== BOARD_INVITATION_STATUS.PENDING) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'This invitation has already been processed')
+    }
+
+    // Update the invitation status
+    const updateData = {
+      boardInvitation: {
+        ...invitation.boardInvitation,
+        status,
+      },
+      updatedAt: Date.now(),
+    }
+
+    const updatedInvitation = await invitationModel.update(invitationId, updateData)
+
+    // If accepted, add user to board members
+    if (status === BOARD_INVITATION_STATUS.ACCEPTED) {
+      await boardModel.pushMemberIds(invitation.boardInvitation.boardId.toString(), userId)
+    }
+
+    return updatedInvitation
+  } catch (error) {
+    throw error
+  }
+}
+
 export const invitationService = {
   createNewBoardInvitation,
+  getInvitations,
+  updateBoardInvitation,
 }

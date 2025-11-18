@@ -11,4 +11,12 @@ Router.route('/board').post(
   invitationController.createNewBoardInvitation
 )
 
+Router.route('/').get(authMiddleware.isAuthorized, invitationController.getInvitations)
+
+Router.route('/board/:invitationId').put(
+  authMiddleware.isAuthorized,
+  invitationValidation.updateBoardInvitation,
+  invitationController.updateBoardInvitation
+)
+
 export const invitationRoute = Router
