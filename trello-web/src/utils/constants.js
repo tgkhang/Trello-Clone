@@ -7,7 +7,7 @@ let apiRoot = ''
 if (process.env.BUILD_MODE === 'dev') {
   apiRoot = 'http://localhost:8010'
 } else if (process.env.BUILD_MODE === 'production') {
-  apiRoot = 'https://trello-api-bi16.onrender.com'
+  apiRoot = 'https://trello.be.khangdev.me/'
 }
 // console.log('API_ROOT:', apiRoot)
 
