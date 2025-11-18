@@ -1,9 +1,11 @@
-name: Deploy to VPS
+name: Deploy API to VPS
 
 on:
   push:
     branches:
       - main  # Deploy when pushing to main branch
+    paths:
+      - 'trello-api/**'  # Only run when API files change
   workflow_dispatch:  # Allow manual deployment from GitHub UI
 
 jobs:
@@ -11,7 +13,7 @@ jobs:
     name: Deploy to Production Server
     runs-on: ubuntu-latest
     environment:
-      name: production
+      name: production-api
       url: https://trello.be.khangdev.me
 
     steps:
@@ -24,7 +26,7 @@ jobs:
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
-          env: production
+          env: production-api
 
       - name: Deploy to VPS via SSH
         uses: appleboy/ssh-action@v1.0.0
