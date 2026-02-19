@@ -34,8 +34,9 @@ const moveCardToDifferentColumn = async (req, res) => {
 
 const getBoards = async (req, res) => {
   const userId = req.jwtDecoded._id
-  const { page, itemsPerPage } = req.query
-  const boards = await boardService.getBoards(userId, page, itemsPerPage)
+  const { page, itemsPerPage, q } = req.query
+  const queryFilter = q
+  const boards = await boardService.getBoards(userId, page, itemsPerPage, queryFilter)
   res.status(StatusCodes.OK).json(boards)
 }
 

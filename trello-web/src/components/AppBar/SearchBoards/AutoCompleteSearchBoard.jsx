@@ -1,7 +1,9 @@
 import Autocomplete from '@mui/material/Autocomplete'
 import TextField from '@mui/material/TextField'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, createSearchParams } from 'react-router-dom'
+import { fetchBoardsAPI } from '~/apis'
+import { useDebounceFn } from '~/hooks/useDebounceFn'
 
 function AutoCompleteSearchBoard() {
   const navigate = useNavigate()
@@ -15,16 +17,26 @@ function AutoCompleteSearchBoard() {
     }
   }, [open])
 
-  const handleInputSearchChange = (e) => {
-    const searchText = e.target.value.trim()
+  const handleInputSearchChange = useCallback((_event, value, reason) => {
+    if (reason !== 'input') return
+    const searchText = value.trim()
     if (!searchText) return
 
     const searchPath = `?${createSearchParams({ 'q[title]': searchText })}`
-    console.log('searchPath: ', searchPath)
-  }
+    setLoading(true)
+    fetchBoardsAPI(searchPath)
+      .then((res) => {
+        setBoards(res.boards || [])
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [])
+
+  const debounceSearchBoard = useDebounceFn(handleInputSearchChange, 1000)
 
   const handleSelectBoard = (event, selectBoard) => {
-    console.log('selectBoard: ', selectBoard)
+    if (selectBoard) navigate(`/boards/${selectBoard._id}`)
   }
   return (
     <Autocomplete
@@ -38,55 +50,40 @@ function AutoCompleteSearchBoard() {
       loading={loading}
       getOptionLabel={(board) => board.title}
       onChange={handleSelectBoard}
+      onInputChange={debounceSearchBoard}
       renderInput={(params) => (
         <TextField
           {...params}
           placeholder="Search boards..."
           size="small"
-          onChange={handleInputSearchChange}
-        />
-      )}
-    >
-      {/* <TextField
-          id="outlined-search"
-          label="Search field"
-          type="text"
-          size="small"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: 'white ' }} />
-              </InputAdornment>
-            ),
-            endAdornment: (
-              <InputAdornment position="end">
-                <CloseIcon
-                  sx={{
-                    color: `${searchText ? 'white' : 'transparent'}`,
-                    fontSize: 'small',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => setSearchText('')}
-                />
-              </InputAdornment>
-            ),
-          }}
           sx={{
-            minWidth: '120px',
-            maxWidth: '190px',
             '& label': { color: 'white' },
-            '& input': { color: 'white' },
-            '& label.Mui-focused': { color: 'white' },
+            '& input': { color: 'white', fontSize: '0.875rem' },
+            '& .MuiInputBase-input::placeholder': {
+              color: 'white',
+              opacity: 0.7,
+            },
             '& .MuiOutlinedInput-root': {
-              '& fieldset': { borderColor: 'white' },
-              '&:hover fieldset': { borderColor: 'white' },
-              '&.Mui-focused fieldset': { borderColor: 'white' },
+              '& fieldset': {
+                borderColor: 'white',
+                borderWidth: '1px',
+              },
+              '&:hover fieldset': {
+                borderColor: 'white',
+                borderWidth: '2px',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: 'white',
+                borderWidth: '2px',
+              },
+            },
+            '& .MuiSvgIcon-root': {
+              color: 'white',
             },
           }}
-        /> */}
-    </Autocomplete>
+        />
+      )}
+    ></Autocomplete>
   )
 }
 
