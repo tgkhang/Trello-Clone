@@ -1,4 +1,5 @@
 import Autocomplete from '@mui/material/Autocomplete'
+import TextField from '@mui/material/TextField'
 import { useEffect, useState } from 'react'
 import { useNavigate, createSearchParams } from 'react-router-dom'
 
@@ -33,7 +34,18 @@ function AutoCompleteSearchBoard() {
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
+      options={boards || []}
+      loading={loading}
       getOptionLabel={(board) => board.title}
+      onChange={handleSelectBoard}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          placeholder="Search boards..."
+          size="small"
+          onChange={handleInputSearchChange}
+        />
+      )}
     >
       {/* <TextField
           id="outlined-search"
