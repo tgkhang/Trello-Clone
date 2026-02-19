@@ -24,7 +24,8 @@ import {
 } from '~/redux/notifications/notificationsSlice'
 import { BOARD_INVITATION_STATUS } from '~/utils/constants'
 import { toast } from 'react-toastify'
-import { socketIoInstance } from '~/main'
+import { socketIoInstance } from '~/socketClient'
+
 
 function Notifications() {
   const dispatch = useDispatch()

@@ -8,22 +8,16 @@ import Recent from './Menus/Recent'
 import Started from './Menus/Started'
 import Templates from './Menus/Templates'
 import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import Profile from './Menus/Profile'
 import LibraryAddIcon from '@mui/icons-material/LibraryAdd'
-import InputAdornment from '@mui/material/InputAdornment'
-import SearchIcon from '@mui/icons-material/Search'
-import CloseIcon from '@mui/icons-material/Close'
-import { useState } from 'react'
 import ModeSelect from '../ModeSelect/ModeSelect'
 import { Link } from 'react-router-dom'
 import Notifications from './Notifications/Notifications'
+import AutoCompleteSearchBoard from './SearchBoards/AutoCompleteSearchBoard'
 
 function AppBar() {
-  const [searchText, setSearchText] = useState('')
-
   return (
     <Box
       sx={(theme) => ({
@@ -78,7 +72,8 @@ function AppBar() {
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <TextField
+        {/* Old version searh */}
+        {/* <TextField
           id="outlined-search"
           label="Search field"
           type="text"
@@ -116,7 +111,11 @@ function AppBar() {
               '&.Mui-focused fieldset': { borderColor: 'white' },
             },
           }}
-        />
+        /> */}
+
+        {/* Replace auto complete search board  */}
+        <AutoCompleteSearchBoard />
+
         <ModeSelect />
 
         <Notifications />

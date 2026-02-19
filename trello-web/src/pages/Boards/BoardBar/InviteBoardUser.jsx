@@ -12,7 +12,7 @@ import { selectCurrentActiveBoard } from '~/redux/activeBoard/activeBoardSlice'
 import { inviteUserToBoardAPI } from '~/apis'
 import FieldErrorAlert from '~/components/Form/FieldErrorAlert'
 import { EMAIL_RULE, EMAIL_RULE_MESSAGE, FIELD_REQUIRED_MESSAGE } from '~/utils/validators'
-import { socketIoInstance } from '~/main'
+import { socketIoInstance } from '~/socketClient'
 
 function InviteBoardUser() {
   const board = useSelector(selectCurrentActiveBoard)

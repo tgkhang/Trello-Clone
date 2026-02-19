@@ -42,6 +42,8 @@ const update = async (cardId, reqBody, cardCoverFile, userInfo) => {
 
       // add new comment to the beginning of comments array
       updatedCard = await cardModel.unShiftNewComment(cardId, commentData)
+    } else if (updateData.incomingMemberInfo) {
+      updatedCard = await cardModel.updateCardMembers(cardId, updateData.incomingMemberInfo)
     } else {
       // update without cover file (normal update: title, description, etc)
       updatedCard = await cardModel.update(cardId, updateData)
